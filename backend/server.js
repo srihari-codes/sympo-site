@@ -1,6 +1,8 @@
+import './env.js'; // must be first — loads .env before anything reads process.env
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -9,8 +11,7 @@ import authRouter from './routes/auth.js';
 import userRouter from './routes/user.js';
 import eventsRouter from './routes/events.js';
 import teamsRouter from './routes/teams.js';
-
-dotenv.config();
+import adminRouter from './routes/admin.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,6 +41,15 @@ app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
 app.use('/api/events', eventsRouter);
 app.use('/api/teams', teamsRouter);
+app.use('/api/admin', adminRouter);
+
+// Admin console (static page; auth happens client-side against /api/admin/*)
+app.get('/admin', (req, res) => {
+  const html = fs
+    .readFileSync(path.join(__dirname, 'admin', 'index.html'), 'utf8')
+    .replace(/__GOOGLE_CLIENT_ID__/g, process.env.GOOGLE_CLIENT_ID || '');
+  res.type('html').send(html);
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

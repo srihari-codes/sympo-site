@@ -62,6 +62,7 @@ Set in `.env`:
 | `JWT_SECRET` | a long random string (`openssl rand -hex 32`) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | from Google Cloud → APIs & Services → Credentials |
 | `VITE_GOOGLE_CLIENT_ID` | same client ID (baked into the frontend at build time) |
+| `ADMIN_EMAILS` | comma-separated Google emails allowed into `/admin` |
 | `CERTBOT_EMAIL` | your email, for Let's Encrypt |
 
 In the Google Cloud OAuth client, add `https://DOMAIN` to **Authorized JavaScript origins**.
@@ -106,6 +107,31 @@ nginx picks a cert in this order (see `frontend/nginx/20-select-cert.sh`):
 git pull
 docker compose up -d --build
 ```
+
+---
+
+## Admin console
+
+`https://DOMAIN/admin` — sign in with a Google account whose email is in
+`ADMIN_EMAILS`. Shows:
+
+- **Overview** — user / registration / team counts, breakdown by event and status
+- **Registrations** — every participant with their payment screenshot + ID card,
+  filterable; **Approve / Reject** buttons (sets `registrations.status`)
+- **Users** — everyone, with profile pic, ID card, contact, event, team
+- **Teams** — each team, its code, event and members
+
+API (all require `Authorization: Bearer <token>` from an admin login):
+
+| method | path | |
+|--------|------|--|
+| GET | `/api/admin/summary` | counts |
+| GET | `/api/admin/registrations` | all registrations + user/event/team |
+| PATCH | `/api/admin/registrations/:id` | body `{ "status": "approved" \| "rejected" \| "pending" }` |
+| GET | `/api/admin/users` | all users |
+| GET | `/api/admin/teams` | all teams + members |
+
+To add/remove admins, edit `ADMIN_EMAILS` in `.env` and `docker compose up -d`.
 
 ---
 

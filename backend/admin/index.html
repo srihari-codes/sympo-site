@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Zyverse Admin</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root {
+    --bg: #0d0b07; --panel: #16130d; --line: rgba(201,168,76,.22);
+    --gold: #c9a84c; --cream: #f7eed7; --ember: #e05e26;
+    --muted: rgba(247,238,215,.6);
+    --ui: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--cream); font-family: var(--ui); font-size: 14px; }
+  a { color: var(--gold); }
+  header {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 16px 24px; border-bottom: 1px solid var(--line); position: sticky; top: 0;
+    background: var(--bg); z-index: 5;
+  }
+  header h1 { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; margin: 0; color: var(--gold); }
+  header .who { margin-left: auto; color: var(--muted); font-size: 13px; }
+  button {
+    font-family: var(--ui); cursor: pointer; border-radius: 6px; border: 1px solid var(--line);
+    background: rgba(201,168,76,.08); color: var(--cream); padding: 7px 14px; font-size: 13px;
+  }
+  button:hover { background: rgba(201,168,76,.18); }
+  button.primary { background: linear-gradient(90deg, var(--gold), var(--ember)); color: #1a1509; border-color: transparent; font-weight: 600; }
+  button:disabled { opacity: .5; cursor: default; }
+  .wrap { padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tabs button.active { background: rgba(201,168,76,.22); border-color: var(--gold); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .card .n { font-size: 26px; color: var(--gold); font-weight: 700; }
+  .card .l { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: .5px; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .thumb { width: 46px; height: 46px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); display: block; }
+  .badge { display: inline-block; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); }
+  .badge.pending { color: #f0c860; border-color: rgba(224,176,44,.5); }
+  .badge.approved { color: #8fe3b0; border-color: rgba(91,208,138,.5); }
+  .badge.rejected { color: #ff9d7a; border-color: rgba(224,94,38,.5); }
+  .row-actions { display: flex; gap: 6px; margin-top: 6px; }
+  .row-actions button { padding: 4px 10px; font-size: 12px; }
+  .muted { color: var(--muted); }
+  .team { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+  .team h3 { margin: 0 0 4px; font-size: 15px; }
+  .team code { background: rgba(201,168,76,.12); padding: 2px 8px; border-radius: 5px; letter-spacing: 2px; }
+  .center { min-height: 70vh; display: grid; place-items: center; text-align: center; }
+  .center .box { max-width: 360px; }
+  #err { color: #ff9d7a; margin-top: 12px; }
+  .search { padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; color: var(--cream); font-family: var(--ui); margin-bottom: 14px; width: 260px; max-width: 100%; }
+  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<div id="login" class="center">
+  <div class="box">
+    <h1 style="color:var(--gold);letter-spacing:3px;">ZYVERSE ADMIN</h1>
+    <p class="muted">Sign in with an authorised organiser account.</p>
+    <div id="gbtn" style="display:flex;justify-content:center;margin-top:16px;"></div>
+    <p id="err"></p>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <header>
+    <h1>Zyverse Admin</h1>
+    <span class="who" id="who"></span>
+    <button id="refresh">Refresh</button>
+    <button id="logout">Sign out</button>
+  </header>
+  <div class="wrap">
+    <div class="tabs">
+      <button data-tab="overview" class="active">Overview</button>
+      <button data-tab="registrations">Registrations</button>
+      <button data-tab="users">Users</button>
+      <button data-tab="teams">Teams</button>
+    </div>
+    <div id="view"></div>
+  </div>
+</div>
+
+<script>
+const CLIENT_ID = "__GOOGLE_CLIENT_ID__";
+const TOKEN_KEY = "zyverse_token";
+let token = null;
+try { token = localStorage.getItem(TOKEN_KEY); } catch {}
+let cache = {};
+let currentTab = "overview";
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+
+async function api(path, opts = {}) {
+  const res = await fetch("/api" + path, {
+    ...opts,
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token, ...(opts.headers || {}) },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+  return data;
+}
+
+/* ---- auth ---- */
+function initGoogle() {
+  if (!window.google?.accounts?.id) return setTimeout(initGoogle, 150);
+  google.accounts.id.initialize({
+    client_id: CLIENT_ID,
+    callback: async (resp) => {
+      $("#err").textContent = "";
+      try {
+        const r = await fetch("/api/auth/google", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential: resp.credential }),
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || "Login failed");
+        token = d.token;
+        try { localStorage.setItem(TOKEN_KEY, token); } catch {}
+        boot();
+      } catch (e) { $("#err").textContent = e.message; }
+    },
+  });
+  google.accounts.id.renderButton($("#gbtn"), { theme: "filled_black", size: "large", shape: "pill", text: "signin_with" });
+}
+
+async function boot() {
+  if (!token) { showLogin(); return; }
+  try {
+    const me = await api("/admin/whoami");
+    $("#who").textContent = (me.name || me.email) + " · admin";
+    $("#login").style.display = "none";
+    $("#app").style.display = "";
+    await loadAll();
+    render();
+  } catch (e) {
+    if (String(e.message).toLowerCase().includes("admin access")) {
+      showLogin("That account is not an authorised admin.");
+    } else {
+      token = null; try { localStorage.removeItem(TOKEN_KEY); } catch {}
+      showLogin(e.message);
+    }
+  }
+}
+
+function showLogin(msg) {
+  $("#app").style.display = "none";
+  $("#login").style.display = "grid";
+  $("#err").textContent = msg || "";
+  initGoogle();
+}
+
+/* ---- data ---- */
+async function loadAll() {
+  const [summary, registrations, users, teams] = await Promise.all([
+    api("/admin/summary"), api("/admin/registrations"), api("/admin/users"), api("/admin/teams"),
+  ]);
+  cache = { summary, registrations: registrations.registrations, users: users.users, teams: teams.teams };
+}
+
+/* ---- render ---- */
+function render() {
+  document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === currentTab));
+  const v = $("#view");
+  if (currentTab === "overview") v.innerHTML = viewOverview();
+  if (currentTab === "registrations") v.innerHTML = viewRegistrations();
+  if (currentTab === "users") v.innerHTML = viewUsers();
+  if (currentTab === "teams") v.innerHTML = viewTeams();
+  wireView();
+}
+
+function viewOverview() {
+  const s = cache.summary;
+  const st = s.registrationsByStatus;
+  return `
+    <div class="cards">
+      <div class="card"><div class="n">${s.users}</div><div class="l">Users</div></div>
+      <div class="card"><div class="n">${s.onboarded}</div><div class="l">Onboarded</div></div>
+      <div class="card"><div class="n">${s.registrations}</div><div class="l">Registrations</div></div>
+      <div class="card"><div class="n">${s.teams}</div><div class="l">Teams</div></div>
+      <div class="card"><div class="n">${st.pending}</div><div class="l">Pending</div></div>
+      <div class="card"><div class="n">${st.approved}</div><div class="l">Approved</div></div>
+      <div class="card"><div class="n">${st.rejected}</div><div class="l">Rejected</div></div>
+    </div>
+    <h3>Registrations by event</h3>
+    <table><thead><tr><th>Event</th><th>Count</th></tr></thead><tbody>
+      ${s.registrationsByEvent.map((e) => `<tr><td>${esc(e.eventName)}</td><td>${e.count}</td></tr>`).join("") || `<tr><td colspan="2" class="muted">None yet</td></tr>`}
+    </tbody></table>`;
+}
+
+function imgCell(url, label) {
+  if (!url) return `<span class="muted">—</span>`;
+  return `<a href="${esc(url)}" target="_blank" rel="noopener" title="${esc(label)}"><img class="thumb" src="${esc(url)}" alt="${esc(label)}"></a>`;
+}
+
+function viewRegistrations() {
+  const rows = cache.registrations;
+  return `
+    <div class="toolbar">
+      <input class="search" id="rsearch" placeholder="Filter by name / email / event…">
+      <span class="muted">${rows.length} total</span>
+    </div>
+    <table><thead><tr>
+      <th>Participant</th><th>Event</th><th>Team</th><th>Payment</th><th>ID card</th><th>Status</th>
+    </tr></thead><tbody id="rbody">
+      ${rows.map(regRow).join("")}
+    </tbody></table>`;
+}
+function regRow(r) {
+  const u = r.user;
+  return `<tr data-search="${esc((u.firstName+" "+u.lastName+" "+u.email+" "+r.event.name).toLowerCase())}">
+    <td>
+      <strong>${esc(u.firstName)} ${esc(u.lastName)}</strong><br>
+      <span class="muted">${esc(u.email)}</span><br>
+      <span class="muted">${esc(u.phoneNumber || "no phone")}</span>
+    </td>
+    <td>${esc(r.event.name)}</td>
+    <td>${r.team ? esc(r.team.name) + `<br><span class="muted">${esc(r.team.code)}${r.team.isLeader ? " · leader" : ""}</span>` : `<span class="muted">solo</span>`}</td>
+    <td>${imgCell(r.paymentScreenshotUrl, "payment")}</td>
+    <td>${imgCell(u.idCardUrl, "id card")}</td>
+    <td>
+      <span class="badge ${r.status}">${r.status}</span>
+      <div class="row-actions">
+        <button data-approve="${r.id}" ${r.status === "approved" ? "disabled" : ""}>Approve</button>
+        <button data-reject="${r.id}" ${r.status === "rejected" ? "disabled" : ""}>Reject</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+function viewUsers() {
+  const rows = cache.users;
+  return `
+    <div class="toolbar">
+      <input class="search" id="usearch" placeholder="Filter by name / email…">
+      <span class="muted">${rows.length} total</span>
+    </div>
+    <table><thead><tr>
+      <th></th><th>Name</th><th>Contact</th><th>Onboarded</th><th>ID card</th><th>Event</th><th>Team</th><th>Joined</th>
+    </tr></thead><tbody id="ubody">
+      ${rows.map(userRow).join("")}
+    </tbody></table>`;
+}
+function userRow(u) {
+  return `<tr data-search="${esc((u.firstName+" "+u.lastName+" "+u.email).toLowerCase())}">
+    <td>${imgCell(u.profilePicUrl, "profile")}</td>
+    <td><strong>${esc(u.firstName || "")} ${esc(u.lastName || "")}</strong></td>
+    <td>${esc(u.email)}<br><span class="muted">${esc(u.phoneNumber || "—")}</span></td>
+    <td>${u.isOnboarded ? "✓" : `<span class="muted">no</span>`}</td>
+    <td>${imgCell(u.idCardUrl, "id card")}</td>
+    <td>${u.registration ? esc(u.registration.eventName) + `<br><span class="badge ${u.registration.status}">${u.registration.status}</span>` : `<span class="muted">—</span>`}</td>
+    <td>${u.team ? esc(u.team.name) + `<br><span class="muted">${esc(u.team.code)}</span>` : `<span class="muted">—</span>`}</td>
+    <td class="muted">${esc((u.createdAt || "").slice(0, 10))}</td>
+  </tr>`;
+}
+
+function viewTeams() {
+  const rows = cache.teams;
+  return `<div class="toolbar"><span class="muted">${rows.length} teams</span></div>` + rows.map((t) => `
+    <div class="team">
+      <h3>${esc(t.name)} <code>${esc(t.code)}</code></h3>
+      <div class="muted">${esc(t.event.name)} · ${t.memberCount}/${t.maxMembers} members · created ${esc((t.createdAt||"").slice(0,10))}</div>
+      <table style="margin-top:10px;"><thead><tr><th>Member</th><th>Email</th><th>Phone</th><th>Role</th></tr></thead><tbody>
+        ${t.members.map((m) => `<tr>
+          <td>${esc(m.firstName)} ${esc(m.lastName)}</td>
+          <td>${esc(m.email)}</td>
+          <td>${esc(m.phoneNumber || "—")}</td>
+          <td>${m.isLeader ? "leader" : "member"}</td>
+        </tr>`).join("")}
+      </tbody></table>
+    </div>`).join("") || `<p class="muted">No teams yet.</p>`;
+}
+
+function wireView() {
+  const filter = (inputId, bodyId) => {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    input.addEventListener("input", () => {
+      const q = input.value.toLowerCase().trim();
+      document.querySelectorAll("#" + bodyId + " tr").forEach((tr) => {
+        tr.style.display = !q || (tr.dataset.search || "").includes(q) ? "" : "none";
+      });
+    });
+  };
+  filter("rsearch", "rbody");
+  filter("usearch", "ubody");
+
+  document.querySelectorAll("[data-approve]").forEach((b) =>
+    b.addEventListener("click", () => setStatus(b.dataset.approve, "approved")));
+  document.querySelectorAll("[data-reject]").forEach((b) =>
+    b.addEventListener("click", () => setStatus(b.dataset.reject, "rejected")));
+}
+
+async function setStatus(id, status) {
+  try {
+    await api("/admin/registrations/" + id, { method: "PATCH", body: JSON.stringify({ status }) });
+    const reg = cache.registrations.find((r) => String(r.id) === String(id));
+    if (reg) reg.status = status;
+    cache.summary = await api("/admin/summary");
+    render();
+  } catch (e) { alert(e.message); }
+}
+
+/* ---- events ---- */
+document.querySelectorAll(".tabs button").forEach((b) =>
+  b.addEventListener("click", () => { currentTab = b.dataset.tab; render(); }));
+$("#refresh").addEventListener("click", async () => { await loadAll(); render(); });
+$("#logout").addEventListener("click", () => {
+  token = null; try { localStorage.removeItem(TOKEN_KEY); } catch {}
+  cache = {}; showLogin();
+});
+
+boot();
+</script>
+</body>
+</html>
