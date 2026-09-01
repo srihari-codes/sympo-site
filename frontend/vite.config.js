@@ -7,12 +7,16 @@ export default defineConfig({
   plugins: [react(), glsl()],
   server: {
     proxy: {
-      // Dev: forward API + uploaded files to the Express backend (npm run server)
+      // Dev: forward API + uploads + admin console to the Express backend
       "/api": {
         target: process.env.VITE_API_TARGET || "http://localhost:5050",
         changeOrigin: true,
       },
       "/uploads": {
+        target: process.env.VITE_API_TARGET || "http://localhost:5050",
+        changeOrigin: true,
+      },
+      "/admin": {
         target: process.env.VITE_API_TARGET || "http://localhost:5050",
         changeOrigin: true,
       },
