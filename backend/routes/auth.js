@@ -20,8 +20,8 @@ router.post('/google', async (req, res) => {
     let firstName = '';
     let lastName = '';
 
-    // Support dev test bypass mode if enabled or if test user payload is passed
-    if (!credential && (testEmail || process.env.NODE_ENV !== 'production')) {
+    // Dev-only test bypass — NEVER active in production (would be an auth hole).
+    if (!credential && process.env.NODE_ENV !== 'production') {
       email = testEmail || 'testuser@example.com';
       googleId = testGoogleId || `google_test_${email.replace(/[^a-zA-Z0-9]/g, '_')}`;
       const nameParts = (testName || 'Test User').split(' ');
