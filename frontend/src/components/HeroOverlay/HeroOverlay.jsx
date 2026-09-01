@@ -91,12 +91,14 @@ const CdBox = ({ value, label }) => (
   </div>
 );
 
-/* ── Bottom nav items mapped to modal IDs ── */
+/* ── Bottom nav items ──
+   `target` is the scroll progress where that painting sits on the wall; a click
+   flies the camera there before the section opens. */
 const NAV_LINKS = [
-  { id: "EVENTS", modalId: "events", Icon: IconEvents },
-  { id: "SCHEDULE", modalId: "schedule", Icon: IconSchedule },
-  { id: "TEAM", modalId: "zyverse_team", Icon: IconTeam },
-  { id: "DASHBOARD", modalId: "dashboard", Icon: IconDashboard },
+  { id: "EVENTS", modalId: "events", target: 0.44, Icon: IconEvents },
+  { id: "SCHEDULE", modalId: "schedule", target: 0.46, Icon: IconSchedule },
+  { id: "TEAM", modalId: "zyverse_team", target: 0.5, Icon: IconTeam },
+  { id: "DASHBOARD", modalId: "dashboard", target: 0.42, Icon: IconDashboard },
 ];
 
 /* ── Dragon-Z component using official logo ── */
@@ -120,13 +122,14 @@ const DragonZ = () => (
    ══════════════════════════════════════════ */
 const HeroOverlay = ({ visible = true }) => {
   const time = useCountdown(TARGET_DATE);
-  const { scrollProgress } = useExperienceStore();
-  const { openModal, setModalID } = useModalStore();
+  const { scrollProgress, navRequest, requestNav } = useExperienceStore();
+  const { closeModal } = useModalStore();
   const { isMuted, isTrackMissing, toggleMute } = useAudioStore();
 
-  const handleNavClick = (modalId) => {
-    setModalID(modalId);
-    openModal();
+  const handleNavClick = (modalId, target) => {
+    // Close whatever is open, then fly to the painting — the modal reopens on arrival.
+    closeModal();
+    requestNav(modalId, target);
   };
 
   if (!visible) return null;
@@ -201,14 +204,17 @@ const HeroOverlay = ({ visible = true }) => {
 
       {/* ── Layer 3: Bottom Navigation (PERMANENTLY FIXED — NEVER DISAPPEARS) ── */}
       <nav className="ho-bottom-nav">
-        <div className="ho-bottom-panel">
-          {NAV_LINKS.map(({ id, modalId, Icon }) => (
+        <div className={`ho-bottom-panel${navRequest ? " is-traveling" : ""}`}>
+          {NAV_LINKS.map(({ id, modalId, target, Icon }) => (
             <button
               key={id}
-              className="ho-bottom-panel__item"
-              onClick={() => handleNavClick(modalId)}
+              className={`ho-bottom-panel__item${
+                navRequest?.modalId === modalId ? " is-active" : ""
+              }`}
+              onClick={() => handleNavClick(modalId, target)}
               type="button"
-              aria-label={`Open ${id}`}
+              disabled={Boolean(navRequest)}
+              aria-label={`Go to ${id}`}
             >
               <span className="ho-bottom-panel__icon"><Icon /></span>
               <span className="ho-bottom-panel__label">{id}</span>

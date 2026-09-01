@@ -19,12 +19,63 @@ const Experience = () => {
   const lastTouchY = useRef(null);
   const mousePositionOffset = useRef(new THREE.Vector3());
   const mouseRotationOffset = useRef(new THREE.Euler());
-  const { isModalOpen } = useModalStore();
-  const { isExperienceReady, setScrollProgress } = useExperienceStore();
+  const { isModalOpen, openModal, setModalID } = useModalStore();
+  const { isExperienceReady, setScrollProgress, navRequest, clearNavRequest } =
+    useExperienceStore();
+
+  // Live mirrors for callbacks / rAF loops that must not re-subscribe every frame
+  const scrollProgressRef = useRef(0);
+  const navActiveRef = useRef(false);
+  navActiveRef.current = Boolean(navRequest);
 
   useEffect(() => {
+    scrollProgressRef.current = scrollProgress;
     setScrollProgress(scrollProgress);
   }, [scrollProgress, setScrollProgress]);
+
+  // ── Automatic navigation: nav-bar click → glide the camera to the section,
+  //    then open its modal once the scroll settles on the painting. ──
+  useEffect(() => {
+    if (!navRequest) return;
+
+    targetScrollProgress.current = navRequest.target;
+
+    let openTimer = null;
+    let raf = null;
+    let fallback = null;
+
+    const finish = () => {
+      if (raf) cancelAnimationFrame(raf);
+      if (openTimer) clearTimeout(openTimer);
+      if (fallback) clearTimeout(fallback);
+      setModalID(navRequest.modalId);
+      openModal();
+      clearNavRequest();
+    };
+
+    const tick = () => {
+      const arrived =
+        Math.abs(scrollProgressRef.current - navRequest.target) < 0.006;
+      if (arrived) {
+        // let the camera position/rotation lerp catch up before revealing
+        openTimer = setTimeout(finish, 340);
+      } else {
+        // hold the target in case anything else nudged it
+        targetScrollProgress.current = navRequest.target;
+        raf = requestAnimationFrame(tick);
+      }
+    };
+
+    // Safety net: never strand the request if arrival never registers
+    fallback = setTimeout(finish, 3500);
+    raf = requestAnimationFrame(tick);
+
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      if (openTimer) clearTimeout(openTimer);
+      if (fallback) clearTimeout(fallback);
+    };
+  }, [navRequest, openModal, setModalID, clearNavRequest]);
 
   useEffect(() => {
     if (!isExperienceReady) return;
@@ -38,7 +89,7 @@ const Experience = () => {
     };
 
     const handleWheel = (e) => {
-      if (isModalOpen) return;
+      if (isModalOpen || navActiveRef.current) return;
       const normalized = normalizeWheel(e);
       const currentSpeed = getEffectiveScrollSpeed();
 
@@ -69,13 +120,13 @@ const Experience = () => {
     };
 
     const handleTouchStart = (e) => {
-      if (isModalOpen) return;
+      if (isModalOpen || navActiveRef.current) return;
       isSwiping.current = true;
       lastTouchY.current = e.touches[0].clientY;
     };
 
     const handleTouchMove = (e) => {
-      if (!isSwiping.current) return;
+      if (!isSwiping.current || navActiveRef.current) return;
 
       if (lastTouchY.current !== null) {
         const deltaY = e.touches[0].clientY - lastTouchY.current;
@@ -98,12 +149,13 @@ const Experience = () => {
     };
 
     const handleMouseDown = (e) => {
-      if (isModalOpen || e.pointerType === "touch") return;
+      if (isModalOpen || navActiveRef.current || e.pointerType === "touch") return;
       isSwiping.current = true;
     };
 
     const handleMouseDrag = (e) => {
-      if (!isSwiping.current || e.pointerType === "touch") return;
+      if (!isSwiping.current || navActiveRef.current || e.pointerType === "touch")
+        return;
       const mouseMultiplier = 0.4;
       const currentSpeed = getEffectiveScrollSpeed();
       targetScrollProgress.current = Math.max(
