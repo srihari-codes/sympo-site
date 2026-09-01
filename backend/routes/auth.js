@@ -112,9 +112,11 @@ router.get('/me', authenticateToken, (req, res) => {
       name: teamMember.team_name,
       code: teamMember.team_code,
       eventId: teamMember.team_event_id,
+      leaderId: teamMember.leader_id,
       isLeader: teamMember.leader_id === user.id,
       members,
       memberCount: members.length,
+      maxMembers: 2,
     };
   }
 

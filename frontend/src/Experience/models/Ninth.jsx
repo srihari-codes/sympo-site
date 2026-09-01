@@ -231,8 +231,8 @@ export default function Model({ progress = 0, pulseIntensity = 0, ...props }) {
   const emblemItems = useMemo(
     () => [
       {
-        id: "about",
-        title: "ABOUT",
+        id: "dashboard",
+        title: "DASHBOARD",
         texturePath: "/textures/valyria_about.png",
         position: [-0.457, 9.285, -48.4],
       },

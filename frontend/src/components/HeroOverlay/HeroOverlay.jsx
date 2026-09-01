@@ -47,10 +47,12 @@ const IconTeam = () => (
     <path d="M17 14c2.21 0 4 1.567 4 3.5" />
   </svg>
 );
-const IconAbout = () => (
+const IconDashboard = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 8v1M12 11v5" />
+    <rect x="3" y="3" width="8" height="10" rx="1.5" />
+    <rect x="3" y="16" width="8" height="5" rx="1.5" />
+    <rect x="13" y="3" width="8" height="5" rx="1.5" />
+    <rect x="13" y="11" width="8" height="10" rx="1.5" />
   </svg>
 );
 
@@ -94,7 +96,7 @@ const NAV_LINKS = [
   { id: "EVENTS", modalId: "events", Icon: IconEvents },
   { id: "SCHEDULE", modalId: "schedule", Icon: IconSchedule },
   { id: "TEAM", modalId: "zyverse_team", Icon: IconTeam },
-  { id: "ABOUT", modalId: "about", Icon: IconAbout },
+  { id: "DASHBOARD", modalId: "dashboard", Icon: IconDashboard },
 ];
 
 /* ── Dragon-Z component using official logo ── */

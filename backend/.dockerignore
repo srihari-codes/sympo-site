@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log*
+data
+uploads
+*.sqlite
+*.sqlite-*
+.env
+.env.*
+!.env.example
+client_secret.json
+.git
+.gitignore
+Dockerfile
+.dockerignore
+*.md
+test_dummy.png

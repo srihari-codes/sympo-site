@@ -1,0 +1,464 @@
+/* Dashboard — rendered inside the boxless Modal shell.
+   Headings keep the display face; everything interactive switches to a
+   readable system stack. Palette matches the modal: antique gold + cream. */
+
+$gold: #c9a84c;
+$cream: #f7eed7;
+$ember: #e05e26;
+$ui-font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+.dash-root {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 92px 6vw 72px;
+  color: $cream;
+  scrollbar-width: thin;
+  scrollbar-color: rgba($gold, 0.45) transparent;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba($gold, 0.35);
+    border-radius: 5px;
+  }
+}
+
+.dash-inner {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.dash-heading {
+  font-size: clamp(24px, 2.4vw, 40px);
+  color: $cream;
+  padding-bottom: 18px;
+  margin-bottom: 26px;
+  border-bottom: 1px solid rgba($gold, 0.24);
+}
+
+/* ── stepper ── */
+.dash-stepper {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 0 0 34px;
+  padding: 0;
+  font-family: $ui-font;
+
+  &__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba($cream, 0.4);
+    text-align: center;
+  }
+
+  &__dot {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba($gold, 0.35);
+    font-size: 12px;
+  }
+
+  &__item.is-current {
+    color: $cream;
+    .dash-stepper__dot {
+      border-color: $gold;
+      background: rgba($gold, 0.16);
+    }
+  }
+
+  &__item.is-done {
+    color: rgba($gold, 0.85);
+    .dash-stepper__dot {
+      border-color: $gold;
+      background: $gold;
+      color: #1a1509;
+    }
+  }
+}
+
+/* ── step container ── */
+.dash-step {
+  font-family: $ui-font;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  &--center {
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    padding-top: 20px;
+  }
+
+  &__title {
+    font-family: "Eagle Lake", serif;
+    font-size: clamp(19px, 1.8vw, 26px);
+    color: $cream;
+  }
+
+  &__lead {
+    font-size: 14px;
+    line-height: 1.65;
+    color: rgba($cream, 0.8);
+    max-width: 56ch;
+  }
+}
+
+.dash-note {
+  font-family: $ui-font;
+  color: rgba($cream, 0.75);
+  padding: 24px 0;
+}
+
+.dash-error {
+  font-family: $ui-font;
+  font-size: 13px;
+  color: #ff9d7a;
+  background: rgba($ember, 0.12);
+  border: 1px solid rgba($ember, 0.4);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+
+/* ── fields ── */
+.dash-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 620px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dash-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: $ui-font;
+
+  &__label {
+    font-size: 12px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: rgba($gold, 0.85);
+  }
+
+  &__hint {
+    font-size: 12px;
+    color: rgba($cream, 0.5);
+  }
+
+  input,
+  select {
+    font-family: $ui-font;
+    font-size: 15px;
+    color: $cream;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba($gold, 0.35);
+    border-radius: 6px;
+    padding: 11px 13px;
+    outline: none;
+    transition: border-color 0.2s ease, background 0.2s ease;
+
+    &:focus {
+      border-color: $gold;
+      background: rgba($gold, 0.1);
+    }
+  }
+}
+
+.dash-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  &__btn {
+    font-family: $ui-font;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 9px 16px;
+    border: 1px solid rgba($gold, 0.6);
+    border-radius: 6px;
+    background: rgba($gold, 0.1);
+    color: $cream;
+    white-space: nowrap;
+
+    &:hover {
+      background: rgba($gold, 0.2);
+    }
+  }
+
+  &__name {
+    font-size: 13px;
+    color: rgba($cream, 0.6);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* ── buttons ── */
+.dash-btn {
+  font-family: $ui-font;
+  align-self: flex-start;
+  cursor: pointer;
+  padding: 13px 30px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #1a1509;
+  background: linear-gradient(90deg, $gold, $ember);
+  border: 1px solid transparent;
+  border-radius: 5px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 22px rgba($gold, 0.35);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $cream;
+    border-color: rgba($gold, 0.6);
+  }
+
+  &--sm {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+}
+
+.dash-choice {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dash-inline-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── event picker ── */
+.dash-events {
+  display: grid;
+  gap: 10px;
+}
+
+.dash-event {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+  padding: 13px 16px;
+  border: 1px solid rgba($gold, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+
+  input {
+    grid-row: 1 / 3;
+    accent-color: $gold;
+  }
+
+  &__name {
+    font-size: 15px;
+    color: $cream;
+  }
+
+  &__tag {
+    grid-column: 2;
+    font-size: 12px;
+    color: rgba($cream, 0.6);
+  }
+
+  &.is-selected {
+    border-color: $gold;
+    background: rgba($gold, 0.12);
+  }
+}
+
+/* ── cards ── */
+.dash-card {
+  font-family: $ui-font;
+  border: 1px solid rgba($gold, 0.28);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.03);
+
+  h4 {
+    font-family: "Eagle Lake", serif;
+    font-size: 17px;
+    color: $cream;
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+}
+
+.dash-badge {
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba($gold, 0.5);
+  color: rgba($cream, 0.85);
+
+  &--pending {
+    border-color: rgba(#e0b02c, 0.6);
+    color: #f0c860;
+  }
+  &--approved,
+  &--confirmed {
+    border-color: rgba(#5bd08a, 0.6);
+    color: #8fe3b0;
+  }
+  &--rejected {
+    border-color: rgba($ember, 0.6);
+    color: #ff9d7a;
+  }
+}
+
+.dash-event-line {
+  font-size: 18px;
+  color: $cream;
+}
+
+.dash-team-code {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  &__label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: rgba($gold, 0.85);
+  }
+
+  &__value {
+    font-family: $ui-font;
+    cursor: pointer;
+    letter-spacing: 3px;
+    font-size: 16px;
+    color: $cream;
+    background: rgba($gold, 0.12);
+    border: 1px dashed rgba($gold, 0.5);
+    border-radius: 6px;
+    padding: 6px 14px;
+  }
+}
+
+.dash-members {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  li {
+    font-size: 14px;
+    color: rgba($cream, 0.9);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.dash-tag {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba($gold, 0.16);
+  color: rgba($gold, 0.95);
+}
+
+/* ── profile header ── */
+.dash-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba($gold, 0.2);
+
+  &__pic {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba($gold, 0.5);
+  }
+
+  &__meta {
+    font-size: 13px;
+    color: rgba($cream, 0.65);
+    margin-top: 4px;
+  }
+
+  > button {
+    margin-left: auto;
+  }
+
+  @media (max-width: 520px) {
+    flex-wrap: wrap;
+    > button {
+      margin-left: 0;
+    }
+  }
+}
+
+/* ── google button holder ── */
+.gsi-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+
+  &__loading {
+    font-family: $ui-font;
+    font-size: 13px;
+    color: rgba($cream, 0.6);
+  }
+}
+
+@media (max-width: 768px) {
+  .dash-root {
+    padding: 84px 22px 56px;
+  }
+}

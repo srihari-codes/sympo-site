@@ -1,0 +1,85 @@
+# Zyverse 2K26 — production stack for a single small box (t3.micro / 1 vCPU / 1 GB).
+#
+#   frontend  nginx: serves the SPA + reverse-proxies /api and /uploads.
+#             The ONLY container with published ports (80 / 443).
+#   backend   Express + SQLite. Internal only — reachable as http://backend:5050.
+#   certbot   On-demand Let's Encrypt issuance (profile: ssl).
+#
+#   cp .env.example .env   # fill in secrets + DOMAIN
+#   docker compose up -d --build
+
+services:
+  backend:
+    build:
+      context: ./backend
+    image: zyverse-backend:latest
+    restart: unless-stopped
+    expose:
+      - "5050"
+    environment:
+      NODE_ENV: production
+      PORT: "5050"
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?set GOOGLE_CLIENT_ID in .env}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    volumes:
+      - backend_data:/app/data
+      - backend_uploads:/app/uploads
+    mem_limit: 512m
+    mem_reservation: 192m
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5050/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - zyverse
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+        VITE_API_BASE: ""
+    image: zyverse-frontend:latest
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot
+    mem_limit: 128m
+    mem_reservation: 32m
+    networks:
+      - zyverse
+
+  # ── Run only when issuing / renewing certs: ──
+  #   docker compose --profile ssl run --rm certbot
+  #   docker compose restart frontend
+  certbot:
+    image: certbot/certbot:latest
+    profiles: ["ssl"]
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: >
+      sh -c 'certbot certonly --webroot -w /var/www/certbot
+      --non-interactive --agree-tos --no-eff-email
+      -m "${CERTBOT_EMAIL:-admin@example.com}"
+      -d "${DOMAIN:?set DOMAIN in .env}"'
+
+volumes:
+  backend_data:
+  backend_uploads:
+  certbot_conf:
+  certbot_www:
+
+networks:
+  zyverse:
+    driver: bridge

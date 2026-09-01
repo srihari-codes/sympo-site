@@ -6,8 +6,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure db directory exists
-const dbDir = path.join(__dirname, '../data');
+// Ensure db directory exists (mounted as a volume in Docker)
+const dbDir = process.env.DATA_DIR || path.join(__dirname, 'data');
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }

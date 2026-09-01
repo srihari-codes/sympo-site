@@ -1,14 +1,4 @@
 export const modalContent = {
-  about: {
-    title: "About Zyverse '26",
-    link: "https://zyverse.whitehatians.in",
-    linkText: "Visit Official Site",
-    paragraphs: [
-      "SRM Valliammai Engineering College (An Autonomous Institution, Approved by AICTE, Affiliated to Anna University, 'A' Grade NAAC, ISO 21001:2018 Certified).",
-      "The Department of Cyber Security in association with SRMVEC CSI Student Branch, WhiteHatians Club, and IQAC proudly presents ZYVERSE 2K26 — A National Level Technical Symposium.",
-      "Step into an arena where cybersecurity mastery meets high-stakes competition with a grand prize pool of ₹12,000/-.",
-    ],
-  },
   events: {
     title: "Events & Competitions",
     link: "https://zyverse.whitehatians.in",

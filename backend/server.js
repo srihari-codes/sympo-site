@@ -18,6 +18,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5050;
 
+// Behind the nginx reverse proxy in production — trust X-Forwarded-* headers.
+app.set('trust proxy', 1);
+
 // Initialize SQLite database
 initDb();
 
@@ -27,7 +30,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded images statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(
+  '/uploads',
+  express.static(process.env.UPLOAD_DIR || path.join(__dirname, 'uploads'))
+);
 
 // Mount API Routes
 app.use('/api/auth', authRouter);

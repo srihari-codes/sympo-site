@@ -4,6 +4,7 @@ import { useModalStore } from "../../stores/useModalStore";
 import { modalContent } from "../../data/modalContent";
 import TimelineJourney from "./TimelineJourney";
 import FacultyShowcase from "./FacultyShowcase";
+import Dashboard from "../Dashboard/Dashboard";
 
 const Modal = () => {
   const { isModalOpen, modalID, closeModal } = useModalStore();
@@ -18,11 +19,11 @@ const Modal = () => {
   const isEventDeck = Boolean(content?.eventList);
   const isTimeline = Boolean(content?.timeline);
   const isFaculty = Boolean(content?.faculty);
-  // The cinematic reveal is deliberately scoped to this one entry.
-  const isAbout = modalID === "about";
+  // The user dashboard: login -> onboarding -> event -> team.
+  const isDashboard = modalID === "dashboard";
   // Every modal is boxless now; this only distinguishes the ones that run
   // their own full-bleed scroll experience from the plain text ones.
-  const isBare = isEventDeck || isTimeline || isFaculty;
+  const isBare = isEventDeck || isTimeline || isFaculty || isDashboard;
 
   const handleClose = () => {
     closeModal();
@@ -112,43 +113,11 @@ const Modal = () => {
     return () => observer.disconnect();
   }, [isModalOpen, isEventDeck, modalID]);
 
-  /*
-   * About only: publishes its own scroll position so the glow behind the copy
-   * can drift against it. One rAF-coalesced handler, one custom property.
-   */
-  useEffect(() => {
-    if (!isModalOpen || !isAbout) return;
-
-    const el = contentRef.current;
-    const root = modalRef.current;
-    if (!el || !root) return;
-
-    let frame = null;
-    const handleScroll = () => {
-      if (frame !== null) return;
-      frame = requestAnimationFrame(() => {
-        frame = null;
-        const max = el.scrollHeight - el.clientHeight;
-        root.style.setProperty(
-          "--about-scroll",
-          (max > 0 ? el.scrollTop / max : 0).toFixed(4)
-        );
-      });
-    };
-
-    el.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-
-    return () => {
-      el.removeEventListener("scroll", handleScroll);
-      if (frame !== null) cancelAnimationFrame(frame);
-    };
-  }, [isModalOpen, isAbout, modalID]);
-
-  if (!isModalOpen || !content) return null;
+  if (!isModalOpen) return null;
+  if (!isDashboard && !content) return null;
 
   const { title, link, linkText, paragraphs, image, eventList, timeline, faculty, finale } =
-    content;
+    content || {};
 
   /*
    * The poster is a single two-faced card rotated by activeIndex * 180deg, so
@@ -166,9 +135,7 @@ const Modal = () => {
       className={`modal-overlay${isBare ? " modal-overlay--full" : ""}`}
     >
       <div
-        className={`modal-container${isBare ? " modal-container--bare" : ""}${
-          isAbout ? " modal-container--about" : ""
-        }`}
+        className={`modal-container${isBare ? " modal-container--bare" : ""}`}
         ref={modalRef}
       >
         <button
@@ -190,7 +157,9 @@ const Modal = () => {
           </svg>
         </button>
 
-        {isEventDeck ? (
+        {isDashboard ? (
+          <Dashboard />
+        ) : isEventDeck ? (
           <>
             <h2 className="modal-title modal-title--floating">{title}</h2>
 
