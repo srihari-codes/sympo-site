@@ -1,3 +1,7 @@
+$gold: #c9a84c;
+$ember: #e05e26;
+$cream: #f7eed7;
+
 .loading-screen {
   position: absolute;
   top: 0;
@@ -34,17 +38,28 @@
 }
 
 .loading-screen-button {
-  background-color: #fff;
+  position: relative;
+  z-index: 3;
+  background-color: $cream;
   border: none;
-  border-radius: none;
-  padding: 10px 10px;
+  border-radius: 0;
+  padding: 12px 14px;
   color: black;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 13px;
+  animation: ls-btn-in 0.6s ease-out both;
 
   &:hover {
-    color: white;
+    color: $cream;
     background-color: rgb(11, 11, 11);
     cursor: pointer;
   }
+}
+
+@keyframes ls-btn-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .loading-screen-info-container {
@@ -70,43 +85,321 @@
   justify-content: center;
   align-items: center;
   transform: translate(-50%, -50%);
-  color: #fff;
+  color: $cream;
   font-size: 12px;
-
-  @media (max-width: 480px) {
-    font-size: 12px;
-  }
-
-  @media (max-width: 390px) {
-    font-size: 12px;
-  }
+  letter-spacing: 1px;
 
   &.revealed {
     display: none;
   }
 }
 
-.loading-bar-container {
-  width: 350px;
-  height: 12px;
-  border: 2px solid #ffffff;
-}
-
-.loading-bar {
-  width: 0;
-  height: 100%;
-  background-color: #ffffff;
-  border: 1px solid black;
-  will-change: width;
-}
-
-.percentage {
-  font-size: 12px;
-  color: #fff;
+/* ══════════════════════════════════════════════════════════
+   Warrior run — pure CSS/SVG, no assets. The runner's `left`
+   is the load %, so it sprints left→right and plants at 100%.
+   ══════════════════════════════════════════════════════════ */
+.warrior-scene {
+  position: relative;
+  width: min(680px, 82vw);
   display: flex;
   flex-direction: column;
-  place-content: center;
-  justify-content: center;
   align-items: center;
-  margin-top: 24px;
+
+  &__hud {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -58%);
+    font-family: "Eagle Lake", serif;
+    font-size: clamp(90px, 20vw, 200px);
+    line-height: 1;
+    color: rgba($cream, 0.06);
+    pointer-events: none;
+    user-select: none;
+    letter-spacing: -0.04em;
+  }
+
+  &__label {
+    margin-top: 22px;
+    font-family: "Eagle Lake", serif;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: rgba($cream, 0.75);
+  }
+
+  &.is-done &__label {
+    color: $gold;
+    text-shadow: 0 0 14px rgba($gold, 0.6);
+  }
+}
+
+.warrior-track {
+  position: relative;
+  width: 100%;
+  height: 120px;
+
+  &__line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 24px;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba($gold, 0.15) 12%,
+      rgba($gold, 0.5) 50%,
+      rgba($gold, 0.15) 88%,
+      transparent
+    );
+    overflow: hidden;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -40%;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, $ember, transparent);
+      animation: wr-shimmer 1.4s linear infinite;
+    }
+  }
+
+  /* Victory flash when the run completes */
+  &__flash {
+    position: absolute;
+    right: 5%;
+    bottom: 24px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: $cream;
+    opacity: 0;
+    transform: translate(50%, 50%);
+    pointer-events: none;
+  }
+}
+
+.warrior-scene.is-done .warrior-track__flash {
+  animation: wr-flash 0.9s ease-out forwards;
+}
+
+.warrior-scene.is-done .warrior-track__line::after {
+  animation: none;
+  opacity: 0;
+}
+
+.warrior-runner {
+  position: absolute;
+  bottom: 24px;
+  transform: translateX(-50%);
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: left;
+
+  &__streak,
+  &__dust {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  /* speed lines trailing the runner */
+  &__streak {
+    right: 100%;
+    bottom: 20px;
+    width: 70px;
+    height: 20px;
+    background:
+      linear-gradient(90deg, transparent, rgba($gold, 0.55)) top / 100% 2px no-repeat,
+      linear-gradient(90deg, transparent, rgba($ember, 0.4)) center / 80% 2px no-repeat,
+      linear-gradient(90deg, transparent, rgba($cream, 0.3)) bottom / 60% 2px no-repeat;
+    animation: wr-streak 0.42s linear infinite;
+  }
+
+  /* dust kicked up at the feet */
+  &__dust {
+    left: 50%;
+    bottom: -2px;
+    width: 10px;
+    height: 10px;
+    margin-left: -14px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba($gold, 0.4), transparent 70%);
+    animation: wr-dust 0.42s ease-out infinite;
+  }
+}
+
+.warrior {
+  display: block;
+  width: clamp(60px, 10vw, 92px);
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke: $gold;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 9px rgba($ember, 0.4));
+  animation: wr-bob 0.42s ease-in-out infinite;
+
+  &__cape,
+  &__head,
+  &__crest {
+    fill: $gold;
+    stroke: none;
+  }
+
+  &__spine {
+    stroke-width: 10;
+  }
+
+  &__cape {
+    fill: $ember;
+    opacity: 0.92;
+    transform-box: view-box;
+    transform-origin: 50px 30px;
+    animation: wr-cape 0.42s ease-in-out infinite;
+  }
+
+  &__head {
+    filter: drop-shadow(0 0 5px rgba($gold, 0.55));
+  }
+
+  &__crest {
+    fill: $ember;
+  }
+
+  &__leg {
+    transform-box: view-box;
+    transform-origin: 47px 62px;
+  }
+  &__leg--front {
+    animation: wr-leg-front 0.42s ease-in-out infinite;
+  }
+  &__leg--back {
+    animation: wr-leg-back 0.42s ease-in-out infinite;
+  }
+
+  &__arm,
+  &__armfront {
+    transform-box: view-box;
+    transform-origin: 54px 33px;
+  }
+  &__arm {
+    animation: wr-arm 0.42s ease-in-out infinite;
+  }
+  &__armfront {
+    animation: wr-armfront 0.42s ease-in-out infinite;
+  }
+
+  &__sword {
+    stroke: $cream;
+    stroke-width: 5;
+    filter: drop-shadow(0 0 7px rgba($cream, 0.75));
+  }
+  &__hilt {
+    stroke: $gold;
+    stroke-width: 6;
+  }
+}
+
+/* ── completed: plant the pose, stop the cycle ── */
+.warrior-scene.is-done {
+  .warrior {
+    animation: wr-land 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
+  }
+  .warrior__leg--front,
+  .warrior__leg--back,
+  .warrior__arm,
+  .warrior__armfront,
+  .warrior__cape {
+    animation: none;
+  }
+  .warrior__leg--back {
+    transform: rotate(30deg);
+  }
+  .warrior__leg--front {
+    transform: rotate(-6deg);
+  }
+  .warrior__arm {
+    transform: rotate(-30deg);
+  }
+  .warrior__armfront {
+    transform: rotate(18deg);
+  }
+  .warrior__cape {
+    transform: skewX(-4deg) scaleX(1.05);
+  }
+  .warrior-runner__streak,
+  .warrior-runner__dust {
+    display: none;
+  }
+}
+
+@keyframes wr-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+@keyframes wr-leg-front {
+  0%   { transform: rotate(40deg); }
+  50%  { transform: rotate(-34deg); }
+  100% { transform: rotate(40deg); }
+}
+@keyframes wr-leg-back {
+  0%   { transform: rotate(-34deg); }
+  50%  { transform: rotate(40deg); }
+  100% { transform: rotate(-34deg); }
+}
+@keyframes wr-arm {
+  0%, 100% { transform: rotate(-14deg); }
+  50%      { transform: rotate(16deg); }
+}
+@keyframes wr-armfront {
+  0%, 100% { transform: rotate(18deg); }
+  50%      { transform: rotate(-16deg); }
+}
+@keyframes wr-cape {
+  0%, 100% { transform: skewX(0) scaleX(1); }
+  50%      { transform: skewX(-12deg) scaleX(1.12); }
+}
+@keyframes wr-streak {
+  0%   { opacity: 0.2; transform: translateX(8px); }
+  50%  { opacity: 0.9; }
+  100% { opacity: 0.2; transform: translateX(0); }
+}
+@keyframes wr-dust {
+  0%   { opacity: 0.7; transform: scale(0.4) translateX(0); }
+  100% { opacity: 0;   transform: scale(1.6) translateX(-14px); }
+}
+@keyframes wr-shimmer {
+  from { left: -40%; }
+  to   { left: 120%; }
+}
+@keyframes wr-land {
+  0%   { transform: translateY(-4px); }
+  40%  { transform: translateY(2px) scaleY(0.94); }
+  100% { transform: translateY(0) scaleY(1); }
+}
+@keyframes wr-flash {
+  0%   { opacity: 0; box-shadow: 0 0 0 0 rgba($cream, 0.9); }
+  15%  { opacity: 1; }
+  100% {
+    opacity: 0;
+    box-shadow: 0 0 0 140px rgba($gold, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .warrior,
+  .warrior__cape,
+  .warrior__arm,
+  .warrior__leg--front,
+  .warrior__leg--back,
+  .warrior-runner__streak,
+  .warrior-runner__dust,
+  .warrior-track__line::after {
+    animation: none !important;
+  }
+  .warrior-runner { transition: left 0.2s linear; }
 }
