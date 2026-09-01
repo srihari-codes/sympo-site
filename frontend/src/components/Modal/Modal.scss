@@ -186,10 +186,12 @@
   border: 1.5px solid rgba(201, 168, 76, 0.75);
   background: rgba(201, 168, 76, 0.12);
   border-radius: 4px;
+  font-family: inherit;
   font-weight: 700;
   font-size: clamp(13px, 0.95vw, 17px);
   letter-spacing: 1px;
   text-transform: uppercase;
+  cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {

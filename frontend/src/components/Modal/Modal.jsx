@@ -7,7 +7,12 @@ import FacultyShowcase from "./FacultyShowcase";
 import Dashboard from "../Dashboard/Dashboard";
 
 const Modal = () => {
-  const { isModalOpen, modalID, closeModal } = useModalStore();
+  const { isModalOpen, modalID, closeModal, setModalID } = useModalStore();
+
+  // "Register Now" anywhere drops the visitor into the Dashboard flow
+  // (login → onboarding → event + payment → team) instead of an external site.
+  const goToRegister = () => setModalID("dashboard");
+  const isRegisterCta = (text) => /\bregister\b/i.test(text || "");
   const modalRef = useRef(null);
   const deckRef = useRef(null);
   const contentRef = useRef(null);
@@ -208,14 +213,24 @@ const Modal = () => {
                         {event.description}
                       </p>
 
-                      <a
-                        href={event.registerLink || link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="modal-link"
-                      >
-                        {event.registerText || linkText}
-                      </a>
+                      {isRegisterCta(event.registerText || linkText) ? (
+                        <button
+                          type="button"
+                          className="modal-link"
+                          onClick={goToRegister}
+                        >
+                          {event.registerText || linkText}
+                        </button>
+                      ) : (
+                        <a
+                          href={event.registerLink || link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="modal-link"
+                        >
+                          {event.registerText || linkText}
+                        </a>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -262,14 +277,24 @@ const Modal = () => {
                   </div>
                 )}
 
-                <a
-                  href={link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="modal-link"
-                >
-                  {linkText}
-                </a>
+                {isRegisterCta(linkText) ? (
+                  <button
+                    type="button"
+                    className="modal-link"
+                    onClick={goToRegister}
+                  >
+                    {linkText}
+                  </button>
+                ) : (
+                  <a
+                    href={link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="modal-link"
+                  >
+                    {linkText}
+                  </a>
+                )}
               </div>
             </div>
           </div>
