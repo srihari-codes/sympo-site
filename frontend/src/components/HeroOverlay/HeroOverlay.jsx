@@ -3,6 +3,7 @@ import "./HeroOverlay.scss";
 import { useExperienceStore } from "../../stores/experienceStore";
 import { useModalStore } from "../../stores/useModalStore";
 import { useAudioStore } from "../../stores/audioStore";
+import HeroDragon from "../HeroDragon/HeroDragon";
 
 /* ── Countdown target date ── */
 const TARGET_DATE = new Date("2026-10-15T09:00:00");
@@ -98,7 +99,8 @@ const WORDMARK = "YVERSE";
    ══════════════════════════════════════════ */
 const HeroOverlay = ({ visible = true }) => {
   const time = useCountdown(TARGET_DATE);
-  const { scrollProgress, navRequest, requestNav } = useExperienceStore();
+  const { scrollProgress, navRequest, requestNav, dragonLanded, setDragonLanded } =
+    useExperienceStore();
   const { closeModal } = useModalStore();
   const { isMuted, isTrackMissing, toggleMute } = useAudioStore();
 
@@ -107,6 +109,15 @@ const HeroOverlay = ({ visible = true }) => {
     closeModal();
     requestNav(modalId, target);
   };
+
+  // Safety net: once the hero is on screen, make sure the "Z" lights even if the
+  // 3D dragon can't run (no WebGL, an error, or reduced motion).
+  useEffect(() => {
+    if (!visible || dragonLanded) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const id = window.setTimeout(() => setDragonLanded(true), reduce ? 200 : 5500);
+    return () => window.clearTimeout(id);
+  }, [visible, dragonLanded, setDragonLanded]);
 
   if (!visible) return null;
 
@@ -135,6 +146,9 @@ const HeroOverlay = ({ visible = true }) => {
         <span /><span /><span /><span /><span /><span /><span />
       </div>
 
+      {/* ── The 3D dragon entrance (flies in, roams, dissolves into the Z) ── */}
+      {!dragonLanded && isHeroActive && <HeroDragon opacity={heroOpacity} />}
+
       {/* ── Layer 2: hero title ── */}
       <header
         className="ho-title-wrap"
@@ -152,10 +166,10 @@ const HeroOverlay = ({ visible = true }) => {
           <span className="ho-eyebrow__sub">SRM Valliammai Engineering College</span>
         </p>
 
-        <div className="ho-mark">
+        <div className={`ho-mark${dragonLanded ? " is-lit" : ""}`}>
           <span className="ho-glow" aria-hidden="true" />
+          {/* The "Z" — hidden until the 3D dragon dissolves into it, then ignites */}
           <span className="ho-dragon" aria-hidden="true">
-            <span className="ho-dragon__trail" />
             <span className="ho-dragon__body" />
           </span>
           <span className="ho-land" aria-hidden="true" />

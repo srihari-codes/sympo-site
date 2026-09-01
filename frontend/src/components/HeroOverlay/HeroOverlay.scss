@@ -211,24 +211,36 @@ $ease: 0.22s ease;
     opacity: 0;
     transform: translateY(0.35em) rotateX(-40deg);
     animation: ho-ch-rise 0.85s cubic-bezier(0.2, 0.9, 0.25, 1) forwards;
-    animation-delay: calc(1.55s + var(--i) * 0.08s);
+    animation-delay: calc(2.7s + var(--i) * 0.09s);
   }
 }
 
-/* ── Dragon-Z ── */
+/* ── The "Z" — the 3D dragon (HeroDragon canvas) dissolves into this ── */
+.hero-dragon-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 11;
+  pointer-events: none;
+  transition: opacity 0.3s linear;
+
+  canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
 .ho-dragon {
   position: absolute;
   left: -2%;
-  top: -14%;
-  bottom: -14%;
+  top: -16%;
+  bottom: -16%;
   width: clamp(70px, 11vw, 138px);
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
   z-index: 2;
-  transform: translate(0, 0) scale(1) rotate(0deg);
-  animation: ho-dragon-fly 3.2s cubic-bezier(0.5, 0, 0.3, 1) forwards;
 
   &__body {
     width: 100%;
@@ -245,25 +257,15 @@ $ease: 0.22s ease;
     mask: url("/media/dragon-z-transparent.png") center / contain no-repeat;
     filter: drop-shadow(0 0 12px rgba(224, 86, 59, 0.55))
       drop-shadow(0 0 30px rgba(232, 182, 76, 0.3));
-    animation: ho-dragon-hover 7s ease-in-out 3.2s infinite;
-  }
-
-  /* ember trail during flight */
-  &__trail {
-    position: absolute;
-    width: 220%;
-    aspect-ratio: 2 / 1;
-    border-radius: 50%;
-    background: radial-gradient(
-      ellipse at center,
-      rgba(232, 182, 76, 0.5) 0%,
-      rgba(224, 86, 59, 0.35) 35%,
-      transparent 70%
-    );
-    filter: blur(10px);
     opacity: 0;
-    animation: ho-dragon-trail 3.2s ease-out forwards;
+    transform: scale(0.7);
   }
+}
+
+/* ignite the Z once the dragon has dissolved into it */
+.ho-mark.is-lit .ho-dragon__body {
+  animation: ho-z-ignite 0.9s cubic-bezier(0.2, 0.9, 0.25, 1) forwards,
+    ho-dragon-hover 7s ease-in-out 0.9s infinite;
 }
 
 /* landing flash where the Z settles */
@@ -279,7 +281,10 @@ $ease: 0.22s ease;
   opacity: 0;
   pointer-events: none;
   z-index: 1;
-  animation: ho-land-flash 0.75s ease-out 2.78s forwards;
+}
+
+.ho-mark.is-lit .ho-land {
+  animation: ho-land-flash 0.8s ease-out forwards;
 }
 
 /* ── 2K26 ── */
@@ -289,7 +294,7 @@ $ease: 0.22s ease;
   gap: 14px;
   margin-top: clamp(6px, 1.4vh, 14px);
   opacity: 0;
-  animation: ho-fade-up 0.9s ease-out 2.5s forwards;
+  animation: ho-fade-up 0.9s ease-out 3.9s forwards;
 
   &__rule {
     width: clamp(26px, 6vw, 70px);
@@ -316,14 +321,14 @@ $ease: 0.22s ease;
   color: $bone;
   margin-top: clamp(8px, 1.6vh, 16px);
   opacity: 0;
-  animation: ho-fade-up 0.9s ease-out 2.7s forwards;
+  animation: ho-fade-up 0.9s ease-out 4.1s forwards;
 }
 
 /* ── Countdown ── */
 .ho-countdown {
   margin-top: clamp(16px, 3.4vh, 34px);
   opacity: 0;
-  animation: ho-fade-up 0.9s ease-out 2.9s forwards;
+  animation: ho-fade-up 0.9s ease-out 4.3s forwards;
 
   &__title {
     font-family: $font-head;
@@ -532,49 +537,33 @@ $ease: 0.22s ease;
   100% { transform: translateY(-104vh) translateX(24px); opacity: 0; }
 }
 
-/* Dragon flies in from the upper right, loops around the wordmark, lands as Z */
-@keyframes ho-dragon-fly {
+/* The 3D dragon has dissolved — ignite the "Z" glyph into place */
+@keyframes ho-z-ignite {
   0% {
     opacity: 0;
-    transform: translate(42vw, -44vh) scale(0.32) rotate(150deg);
+    transform: scale(0.72);
+    filter: drop-shadow(0 0 40px rgba(255, 240, 220, 0.9))
+      drop-shadow(0 0 12px rgba(255, 240, 220, 0.9)) brightness(2.4);
   }
-  8% { opacity: 1; }
-  22% {
-    transform: translate(19vw, 9vh) scale(0.66) rotate(44deg);
-  }
-  40% {
-    transform: translate(-5vw, 17vh) scale(0.82) rotate(-20deg);
-  }
-  58% {
-    transform: translate(-15vw, -2vh) scale(0.96) rotate(10deg);
-  }
-  74% {
-    transform: translate(3vw, -15vh) scale(1.16) rotate(-15deg);
-  }
-  88% {
-    transform: translate(1.5vw, 2.5vh) scale(1.06) rotate(7deg);
+  55% {
+    opacity: 1;
+    transform: scale(1.12);
   }
   100% {
     opacity: 1;
-    transform: translate(0, 0) scale(1) rotate(0deg);
+    transform: scale(1);
+    filter: drop-shadow(0 0 12px rgba(224, 86, 59, 0.55))
+      drop-shadow(0 0 30px rgba(232, 182, 76, 0.3)) brightness(1);
   }
 }
 
 /* Idle: slow breathing + a gentle bank now and then */
 @keyframes ho-dragon-hover {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25%      { transform: translateY(-5px) rotate(-2deg); }
-  50%      { transform: translateY(-1px) rotate(1.5deg); }
-  62%      { transform: translateY(-3px) rotate(6deg) scale(1.02); }
-  70%      { transform: translateY(-3px) rotate(-3deg); }
-  80%      { transform: translateY(-2px) rotate(0deg); }
-}
-
-@keyframes ho-dragon-trail {
-  0%   { opacity: 0; }
-  12%  { opacity: 0.9; }
-  78%  { opacity: 0.7; }
-  100% { opacity: 0; }
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  25%      { transform: translateY(-4px) rotate(-1.5deg) scale(1); }
+  50%      { transform: translateY(-1px) rotate(1deg) scale(1); }
+  62%      { transform: translateY(-3px) rotate(4deg) scale(1.02); }
+  75%      { transform: translateY(-2px) rotate(-2deg) scale(1); }
 }
 
 @keyframes ho-land-flash {
@@ -618,9 +607,7 @@ $ease: 0.22s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ho-dragon,
   .ho-dragon__body,
-  .ho-dragon__trail,
   .ho-wordmark__ch,
   .ho-eyebrow,
   .ho-year,
@@ -631,6 +618,7 @@ $ease: 0.22s ease;
   .ho-land {
     animation: none !important;
   }
+  .ho-dragon__body,
   .ho-wordmark__ch,
   .ho-eyebrow,
   .ho-year,
@@ -639,6 +627,7 @@ $ease: 0.22s ease;
     opacity: 1;
     transform: none;
   }
+  .hero-dragon-canvas { display: none; }
 }
 
 /* ── Music toggle ── */

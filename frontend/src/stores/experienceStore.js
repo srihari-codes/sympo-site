@@ -13,6 +13,9 @@ export const useExperienceStore = create((set) => ({
   // scroll position, then the modal opens on arrival. { modalId, target, key }
   navRequest: null,
 
+  // The 3D hero dragon has finished its entrance and dissolved into the "Z".
+  dragonLanded: false,
+
   setIsExperienceReady: () => set({ isExperienceReady: true }),
   setIsExperienceLoading: (isLoading) =>
     set({ isExperienceLoading: isLoading }),
@@ -23,4 +26,6 @@ export const useExperienceStore = create((set) => ({
   requestNav: (modalId, target) =>
     set({ navRequest: { modalId, target, key: Date.now() } }),
   clearNavRequest: () => set({ navRequest: null }),
+
+  setDragonLanded: (v = true) => set({ dragonLanded: v }),
 }));
