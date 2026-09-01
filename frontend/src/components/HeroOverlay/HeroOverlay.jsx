@@ -72,22 +72,12 @@ const IconMusicOff = () => (
     <path d="M3 3l18 18" />
   </svg>
 );
-const IconCompass = () => (
-  <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="24" cy="24" r="20" strokeWidth="0.8" />
-    <polygon points="24,4 27,22 24,26 21,22" fill="currentColor" opacity="0.85" strokeWidth="0.5" />
-    <polygon points="24,44 21,26 24,22 27,26" fill="currentColor" opacity="0.35" strokeWidth="0.5" />
-    <polygon points="4,24 22,21 26,24 22,27" fill="currentColor" opacity="0.35" strokeWidth="0.5" />
-    <polygon points="44,24 26,27 22,24 26,21" fill="currentColor" opacity="0.85" strokeWidth="0.5" />
-    <circle cx="24" cy="24" r="2" fill="currentColor" strokeWidth="0" />
-  </svg>
-);
 
-/* ── Countdown box ── */
+/* ── Countdown cell ── */
 const CdBox = ({ value, label }) => (
-  <div className="ho-cd-box">
-    <span className="ho-cd-box__val">{String(value).padStart(2, "0")}</span>
-    <span className="ho-cd-box__lbl">{label}</span>
+  <div className="ho-cd">
+    <span className="ho-cd__val">{String(value).padStart(2, "0")}</span>
+    <span className="ho-cd__lbl">{label}</span>
   </div>
 );
 
@@ -101,21 +91,7 @@ const NAV_LINKS = [
   { id: "DASHBOARD", modalId: "dashboard", target: 0.42, Icon: IconDashboard },
 ];
 
-/* ── Dragon-Z component using official logo ── */
-const DragonZ = () => (
-  <img
-    src="/media/favicon.svg"
-    className="ho-dragon-z-img"
-    alt="Z"
-    style={{
-      height: "clamp(38px, 6.2vw, 72px)",
-      width: "auto",
-      display: "inline-block",
-      verticalAlign: "middle",
-      marginRight: "-2px"
-    }}
-  />
-);
+const WORDMARK = "YVERSE";
 
 /* ══════════════════════════════════════════
    Main HeroOverlay component
@@ -136,18 +112,14 @@ const HeroOverlay = ({ visible = true }) => {
 
   // Layer 1 & 2 progress interpolation over scroll forward into house (0.00 -> 0.12)
   const p = Math.min(1, Math.max(0, scrollProgress / 0.12));
-
-  // Layer 1: Background blur & fog (reduces blur 10px->0px, opacity 1->0)
   const blurPx = (1 - p) * 10;
   const fogOpacity = 1 - p;
-
-  // Layer 2: Center Hero Content (fades out 1->0 when entering house, fades back 0->1 when scrolling out)
   const heroOpacity = 1 - p;
   const isHeroActive = heroOpacity > 0.01;
 
   return (
     <div className="ho-root">
-      {/* ── Layer 1: Background fog overlay (fogs the 3D scene, blur clears on scroll into house) ── */}
+      {/* ── Layer 1: fog over the 3D scene ── */}
       <div
         className="ho-bg-fog"
         style={{
@@ -157,7 +129,13 @@ const HeroOverlay = ({ visible = true }) => {
         }}
       />
 
-      {/* ── Layer 2: Center Hero Content (fades out on scroll in, restores on scroll back) ── */}
+      {/* ── Cinematic vignette + drifting embers ── */}
+      <div className="ho-vignette" aria-hidden="true" style={{ opacity: 0.35 + 0.65 * fogOpacity }} />
+      <div className="ho-emberfield" aria-hidden="true" style={{ opacity: heroOpacity }}>
+        <span /><span /><span /><span /><span /><span /><span />
+      </div>
+
+      {/* ── Layer 2: hero title ── */}
       <header
         className="ho-title-wrap"
         style={{
@@ -165,25 +143,49 @@ const HeroOverlay = ({ visible = true }) => {
           pointerEvents: isHeroActive ? "auto" : "none",
         }}
       >
-        <h1 className="ho-title__zyverse">
-          <span className="ho-dragon-z-mask" aria-label="Z" />
-          <span>YVERSE</span>
-        </h1>
-        <div className="ho-title__2k26-row">
-          <span className="ho-title__diamond">◆</span>
-          <span className="ho-title__2k26">2K26</span>
-          <span className="ho-title__diamond">◆</span>
+        <p className="ho-eyebrow">
+          <span className="ho-eyebrow__lead">
+            <span className="ho-eyebrow__mark">✦</span>
+            Dept. of Cyber Security
+            <span className="ho-eyebrow__mark">✦</span>
+          </span>
+          <span className="ho-eyebrow__sub">SRM Valliammai Engineering College</span>
+        </p>
+
+        <div className="ho-mark">
+          <span className="ho-glow" aria-hidden="true" />
+          <span className="ho-dragon" aria-hidden="true">
+            <span className="ho-dragon__trail" />
+            <span className="ho-dragon__body" />
+          </span>
+          <span className="ho-land" aria-hidden="true" />
+          <h1 className="ho-wordmark" aria-label="Zyverse 2K26">
+            {WORDMARK.split("").map((c, i) => (
+              <span key={i} className="ho-wordmark__ch" style={{ "--i": i }}>
+                {c}
+              </span>
+            ))}
+          </h1>
         </div>
-        <p className="ho-title__dept">DEPT. OF CYBERSECURITY</p>
-        <p className="ho-title__college">SRM VALLIAMMAI ENGINEERING COLLEGE</p>
-        {/* ── Countdown below college ── */}
-        <div className="ho-countdown-wrap">
-          <div className="ho-countdown-wrap__title">EVENT BEGINS IN</div>
-          <div className="ho-countdown-wrap__row">
-            <CdBox value={time.days} label="DAYS" />
-            <CdBox value={time.hours} label="HRS" />
-            <CdBox value={time.minutes} label="MINS" />
-            <CdBox value={time.seconds} label="SECS" />
+
+        <div className="ho-year">
+          <span className="ho-year__rule" />
+          <span className="ho-year__text">2K26</span>
+          <span className="ho-year__rule" />
+        </div>
+
+        <p className="ho-tagline">National Level Technical Symposium</p>
+
+        <div className="ho-countdown">
+          <div className="ho-countdown__title">The realm gathers in</div>
+          <div className="ho-countdown__row">
+            <CdBox value={time.days} label="Days" />
+            <span className="ho-countdown__sep">◆</span>
+            <CdBox value={time.hours} label="Hrs" />
+            <span className="ho-countdown__sep">◆</span>
+            <CdBox value={time.minutes} label="Min" />
+            <span className="ho-countdown__sep">◆</span>
+            <CdBox value={time.seconds} label="Sec" />
           </div>
         </div>
       </header>
@@ -202,7 +204,7 @@ const HeroOverlay = ({ visible = true }) => {
         </button>
       )}
 
-      {/* ── Layer 3: Bottom Navigation (PERMANENTLY FIXED — NEVER DISAPPEARS) ── */}
+      {/* ── Layer 3: bottom navigation (always fixed) ── */}
       <nav className="ho-bottom-nav">
         <div className={`ho-bottom-panel${navRequest ? " is-traveling" : ""}`}>
           {NAV_LINKS.map(({ id, modalId, target, Icon }) => (
@@ -222,7 +224,6 @@ const HeroOverlay = ({ visible = true }) => {
           ))}
         </div>
       </nav>
-
     </div>
   );
 };
