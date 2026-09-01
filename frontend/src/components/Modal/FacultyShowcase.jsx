@@ -72,20 +72,24 @@ const Person = ({ person, index, total }) => (
 
       <h3 className="fx-info__name">{person.name}</h3>
       <p className="fx-info__role">{person.designation}</p>
-      <p className="fx-info__dept">{person.department}</p>
+      {person.department && <p className="fx-info__dept">{person.department}</p>}
 
-      <ul className="fx-info__tags">
-        {person.expertise.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
+      {person.expertise?.length > 0 && (
+        <ul className="fx-info__tags">
+          {person.expertise.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      )}
 
-      <p className="fx-info__bio">{person.bio}</p>
+      {person.bio && <p className="fx-info__bio">{person.bio}</p>}
 
-      <dl className="fx-info__meta">
-        <dt>Achievement</dt>
-        <dd>{person.achievement}</dd>
-      </dl>
+      {person.achievement && (
+        <dl className="fx-info__meta">
+          <dt>Achievement</dt>
+          <dd>{person.achievement}</dd>
+        </dl>
+      )}
     </div>
   </div>
 );

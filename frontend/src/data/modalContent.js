@@ -180,8 +180,8 @@ export const modalContent = {
       {
         id: "faculty-08",
         portrait: "/images/faculty/08.jpg",
-        name: "[FACULTY NAME 08]",
-        designation: "Ms. C. Jesifica Cinthamani",
+        name: "Ms. C. Jesifica Cinthamani",
+        designation: "Assistant Professor",
         department: "Department of Cyber Security",
       },
       {
@@ -200,13 +200,140 @@ export const modalContent = {
     },
   },
   zyverse_team: {
-    title: "Student Coordinators",
+    title: "Zyverse Team",
     link: "https://zyverse.whitehatians.in",
     linkText: "Contact Coordinators",
-    paragraphs: [
-      "Gokul Amaran S — Student Coordinator (Ph: 8870961327)",
-      "Cassandra Maria Wiltshire — Student Coordinator (Ph: 9150676611)",
-      "Organized by Department of Cyber Security in association with SRMVEC CSI Student Branch, WhiteHatians Club & IQAC.",
+    faculty: [
+      // ── Core Team (photos needed) ──
+      {
+        id: "team-president",
+        portrait: "/images/team/president.jpg",
+        name: "Gokul Amaran",
+        designation: "President",
+      },
+      {
+        id: "team-vice-president",
+        portrait: "/images/team/vice-president.jpg",
+        name: "Cassandra Maria Wiltshire",
+        designation: "Vice President",
+      },
+      {
+        id: "team-secretary",
+        portrait: "/images/team/secretary.jpg",
+        name: "Srihari",
+        designation: "Secretary",
+      },
+      {
+        id: "team-treasurer",
+        portrait: "/images/team/treasurer.jpg",
+        name: "Rakesh Kannan",
+        designation: "Treasurer",
+      },
+      {
+        id: "team-administrative",
+        portrait: "/images/team/administrative.jpg",
+        name: "Durai R",
+        designation: "Administrative",
+      },
+      {
+        id: "team-anchoring",
+        portrait: "/images/team/anchoring.jpg",
+        name: "Sreelaya",
+        designation: "Anchoring",
+      },
+
+      // ── Event Organizers (photos needed) ──
+      {
+        id: "team-scrolls",
+        portrait: "/images/team/scrolls.jpg",
+        name: "Dharshini",
+        designation: "Event Organizer — Scrolls of the Realm",
+      },
+      {
+        id: "team-iron-throne",
+        portrait: "/images/team/iron-throne.jpg",
+        name: "Durai",
+        designation: "Event Organizer — Iron Throne",
+      },
+      {
+        id: "team-tessarions-trail",
+        portrait: "/images/team/tessarions-trail.jpg",
+        name: "Saajith Ms",
+        designation: "Event Organizer — Tessarion's Trail",
+      },
+      {
+        id: "team-siege",
+        portrait: "/images/team/siege.jpg",
+        name: "Ragavi",
+        designation: "Event Organizer — Siege of Servers",
+      },
+      {
+        id: "team-winter-war",
+        portrait: "/images/team/winter-war.jpg",
+        name: "Sai Shravan",
+        designation: "Event Organizer — Winter War",
+      },
+
+      // ── Committee Members (no photos) ──
+      {
+        id: "team-discipline",
+        portrait: null,
+        name: "Saahith G",
+        designation: "Discipline Committee",
+      },
+      {
+        id: "team-registration",
+        portrait: null,
+        name: "Manoj Kumar",
+        designation: "Registration",
+      },
+      {
+        id: "team-design",
+        portrait: null,
+        name: "Naveen N",
+        designation: "Designing & Documentation",
+      },
+      {
+        id: "team-food",
+        portrait: null,
+        name: "Karthik Selvam",
+        designation: "Food Committee",
+      },
+      {
+        id: "team-reception",
+        portrait: null,
+        name: "Shamuga Priya",
+        designation: "Reception",
+      },
+      {
+        id: "team-promotion",
+        portrait: null,
+        name: "Nithin Shyam",
+        designation: "Promotion Committee",
+      },
+      {
+        id: "team-souvenir",
+        portrait: null,
+        name: "Rakesh Kannan",
+        designation: "Souvenir",
+      },
+      {
+        id: "team-decoration",
+        portrait: null,
+        name: "Harish K",
+        designation: "Decoration",
+      },
+      {
+        id: "team-purchase",
+        portrait: null,
+        name: "Karthikeyan",
+        designation: "Purchase Committee",
+      },
     ],
+    finale: {
+      heading: "Organized By",
+      vision: "Department of Cyber Security, SRM Valliammai Engineering College",
+      mission: "In association with SRMVEC CSI Student Branch, WhiteHatians Club & IQAC.",
+    },
   },
 };
