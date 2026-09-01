@@ -101,6 +101,103 @@ const WallEmblemItem = ({
   );
 };
 
+/*
+ * ── Event poster placement ──────────────────────────────────────────────────
+ * Measured directly out of public/models/Ninth.glb (draco-decoded), node
+ * "Ninth_Paper_Baked" at translation [6.122460, 6.807644, -35.966049].
+ * The sheet of paper lying on the desk is the topmost inclined quad in that
+ * mesh, and it measures:
+ *
+ *   world centre  : [6.122251, 8.194515, -35.937829]
+ *   surface normal: [0, 0.954588, 0.297928]   → 17.33° off horizontal
+ *   in-plane size : 0.271675 wide × 0.369273 tall  (aspect 0.7357)
+ *
+ * Rotating the group by PAPER_ROTATION_X about X lines its local +Z up with
+ * that normal, so the poster lies exactly in the plane of the page and a local
+ * +Z offset lifts it straight off the paper.
+ */
+const PAPER_CENTER = [6.122251, 8.194515, -35.937829];
+const PAPER_ROTATION_X = -1.268275; // radians (-72.667°)
+const PAPER_WIDTH = 0.271675;
+const PAPER_HEIGHT = 0.369273;
+
+// event_poster.png is 537 × 757 (aspect 0.7094), very slightly narrower than
+// the page. Fit it to the page's full height and inset ~4.9mm each side rather
+// than stretching it 3.7% wide to fill the paper edge to edge. To fill the
+// page exactly instead, use PAPER_WIDTH / PAPER_HEIGHT here.
+const POSTER_HEIGHT = PAPER_HEIGHT;
+const POSTER_WIDTH = Math.min(PAPER_WIDTH, PAPER_HEIGHT * (537 / 757));
+
+// Clearance above the page, measured along the page normal.
+const POSTER_REST_LIFT = 0.0012;
+const POSTER_HOVER_LIFT = 0.006;
+
+const TableTopPoster = ({ progress, isModalOpen, onClick }) => {
+  const posterTexture = useTexture("/textures/event_poster.png");
+  const [hovered, setHovered] = useState(false);
+  const meshRef = useRef();
+
+  useMemo(() => {
+    posterTexture.colorSpace = THREE.SRGBColorSpace;
+    posterTexture.anisotropy = 16;
+    posterTexture.needsUpdate = true;
+  }, [posterTexture]);
+
+  // The camera sweeps over the desk between these two points on the curve.
+  const isInteractable = progress >= 0.2 && progress <= 0.36 && !isModalOpen;
+  const isHovered = hovered && isInteractable;
+
+  useEffect(() => {
+    if (!isHovered) return;
+    document.body.style.cursor = "pointer";
+
+    return () => {
+      document.body.style.cursor = "auto";
+    };
+  }, [isHovered]);
+
+  useFrame((_, delta) => {
+    if (!meshRef.current) return;
+    meshRef.current.position.z = THREE.MathUtils.lerp(
+      meshRef.current.position.z,
+      isHovered ? POSTER_HOVER_LIFT : POSTER_REST_LIFT,
+      delta * 8
+    );
+  });
+
+  return (
+    <group position={PAPER_CENTER} rotation={[PAPER_ROTATION_X, 0, 0]}>
+      <mesh
+        ref={meshRef}
+        position={[0, 0, POSTER_REST_LIFT]}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          if (isInteractable) setHovered(true);
+        }}
+        onPointerOut={(e) => {
+          e.stopPropagation();
+          setHovered(false);
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (isInteractable && onClick) onClick();
+        }}
+      >
+        <planeGeometry args={[POSTER_WIDTH, POSTER_HEIGHT]} />
+        <meshBasicMaterial
+          map={posterTexture}
+          color={isHovered ? "#ffffff" : "#e8e2d6"}
+          side={THREE.DoubleSide}
+          toneMapped={false}
+          polygonOffset
+          polygonOffsetFactor={-2}
+          polygonOffsetUnits={-2}
+        />
+      </mesh>
+    </group>
+  );
+};
+
 export default function Model({ progress = 0, pulseIntensity = 0, ...props }) {
   const { nodes, materials } = useGLTFWithKTX2("/models/Ninth.glb");
   const [hoveredMesh, setHoveredMesh] = useState(null);
@@ -124,6 +221,11 @@ export default function Model({ progress = 0, pulseIntensity = 0, ...props }) {
     if (progress <= 0.399 || progress >= 0.6 || isModalOpen) return;
     openModal();
     setModalID(elementID);
+  };
+
+  const handlePosterClick = () => {
+    openModal();
+    setModalID("events");
   };
 
   const emblemItems = useMemo(
@@ -179,10 +281,17 @@ export default function Model({ progress = 0, pulseIntensity = 0, ...props }) {
           handleClick={handleClick}
         />
       ))}
+      {/* 3D Wooden Lectern Stand with authentic textures */}
       <mesh
         geometry={nodes.Ninth_Paper_Baked.geometry}
         material={newMaterials["Ninth_real_actual_Baked"]}
         position={[6.122, 6.808, -35.966]}
+      />
+      {/* Event poster lying on the sheet of paper on the desk */}
+      <TableTopPoster
+        progress={progress}
+        isModalOpen={isModalOpen}
+        onClick={handlePosterClick}
       />
     </group>
   );

@@ -16,6 +16,7 @@ const Experience = () => {
   const scrollSpeed = 0.01;
   const lerpFactor = 0.1;
   const isSwiping = useRef(false);
+  const lastTouchY = useRef(null);
   const mousePositionOffset = useRef(new THREE.Vector3());
   const mouseRotationOffset = useRef(new THREE.Euler());
   const { isModalOpen } = useModalStore();

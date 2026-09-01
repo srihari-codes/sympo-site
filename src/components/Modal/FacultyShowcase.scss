@@ -1,0 +1,625 @@
+/* ══ Faculty showcase — horizontal depth rail ═════════════════════════════
+   Panels hang on a rail that travels right to left. Each reads three numbers
+   written by the scroll loop:
+     --d  signed distance in panels (+ still to come, - already passed)
+     --a  its magnitude
+     --v  0..1 visibility ramp
+   Only transform and opacity are animated. No boxes: depth does the work that
+   a border would otherwise be doing. */
+
+$gold: #c9a84c;
+$gold-lit: #f0d68a;
+$parchment: #f7eed7;
+$muted: #b8c0cc;
+
+.fx {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &:focus-visible {
+    outline: 1px solid rgba(201, 168, 76, 0.5);
+    outline-offset: -2px;
+  }
+}
+
+/* Sticky rather than a separate fixed layer, so every panel keeps its real
+   text: selectable, focusable, and copyable straight off the screen. */
+.fx__run {
+  position: relative;
+}
+
+.fx__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  /* Pulled back out of the flow so the steps alone define the scroll length —
+     without this the pinned stage would add a screen and every step would land
+     one panel short. */
+  margin-bottom: -100vh;
+  margin-bottom: -100dvh;
+  z-index: 1;
+  overflow: hidden;
+  perspective: 1500px;
+  perspective-origin: 50% 48%;
+}
+
+.fx__rail {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform: translate3d(calc(var(--x, 0) * -100%), 0, 0);
+  will-change: transform;
+}
+
+.fx-panel {
+  --d: 0;
+  --a: 0;
+  --v: 1;
+
+  position: absolute;
+  top: 0;
+  left: calc(var(--i) * 100%);
+  width: 100%;
+  height: 100%;
+  display: grid;
+  align-content: center;
+  padding: 5vh 4.5vw;
+
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  opacity: clamp(0, calc(1.35 - var(--a)), 1);
+
+  /* The signature move: panels fan away in depth. Still to come means angled
+     off to the right, passed means angled off to the left, and the current one
+     squares up flat to the viewer. */
+  transform: translate3d(0, calc(var(--a) * 26px), calc(var(--a) * -320px))
+    rotateY(calc(var(--d) * -27deg));
+
+  /* Only the panel at the centre takes pointer events; the loop toggles this,
+     so an angled neighbour can never intercept a click meant for the front. */
+  pointer-events: none;
+
+  &__inner {
+    display: grid;
+    /* auto lets the portrait take exactly the width its height implies, and
+       the copy expands into everything left over — so the pair fills the
+       viewport instead of sitting in a fixed-width column. */
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 4vw;
+    width: 100%;
+    max-width: 1760px;
+    margin: 0 auto;
+  }
+}
+
+/* ── portrait ── */
+.fx-portrait {
+  margin: 0;
+  /* Leads the parallax: the plate drifts slightly against the panel it sits
+     on, which is what gives the rail its sense of thickness. */
+  transform: translate3d(calc(var(--d) * 46px), 0, 40px);
+  will-change: transform;
+
+  &__frame {
+    position: relative;
+    display: block;
+    /* Height-led: the plate grows with the viewport and the 3:4 ratio derives
+       its width, which is what actually fills a wide screen. */
+    height: min(80vh, 1050px);
+    width: auto;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: 2px;
+    background: linear-gradient(
+      160deg,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
+    backdrop-filter: blur(10px) saturate(120%);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    box-shadow: 0 46px 100px rgba(0, 0, 0, 0.66),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  /* A band of light crossing the plate as it comes square. Pure transform, so
+     it costs nothing, and it fires once per arrival rather than looping. */
+  &__sweep {
+    position: absolute;
+    inset: -20% -60%;
+    pointer-events: none;
+    background: linear-gradient(
+      104deg,
+      transparent 42%,
+      rgba(255, 255, 255, 0.16) 50%,
+      transparent 58%
+    );
+    transform: translate3d(calc(var(--d) * 62%), 0, 0);
+    opacity: var(--v);
+  }
+
+  &__placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: rgba(201, 168, 76, 0.32);
+    stroke-width: 4;
+    stroke-linecap: round;
+
+    text {
+      fill: rgba(201, 168, 76, 0.42);
+      stroke: none;
+      font-size: 20px;
+      letter-spacing: 4px;
+    }
+  }
+}
+
+/* ── information: trails the portrait, so the two separate in depth ── */
+.fx-info {
+  transform: translate3d(calc(var(--d) * -86px), 0, 0);
+  opacity: var(--v);
+  will-change: transform, opacity;
+
+  &__index {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: rgba(201, 168, 76, 0.75);
+    margin-bottom: 18px;
+  }
+
+  &__count {
+    color: rgba(201, 168, 76, 0.38);
+  }
+
+  &__name {
+    font-size: clamp(28px, 4vw, 76px);
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: -0.5px;
+    color: #fff;
+    margin: 0 0 12px;
+  }
+
+  &__role {
+    font-size: clamp(14px, 1.3vw, 22px);
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: $gold-lit;
+    margin: 0 0 8px;
+  }
+
+  &__dept {
+    font-size: clamp(12px, 1vw, 17px);
+    letter-spacing: 1.4px;
+    color: $muted;
+    margin: 0 0 26px;
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    margin: 0 0 22px;
+    padding: 0;
+    list-style: none;
+
+    li {
+      position: relative;
+      font-size: clamp(11px, 0.95vw, 15px);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(201, 168, 76, 0.85);
+
+      &:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        right: -12px;
+        top: 50%;
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: rgba(201, 168, 76, 0.4);
+        transform: translateY(-50%);
+      }
+    }
+  }
+
+  &__bio {
+    max-width: 64ch;
+    font-size: clamp(15px, 1.22vw, 21px);
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.84);
+    margin: 0 0 30px;
+  }
+
+  &__meta {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px 20px;
+    margin: 0;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+
+    dt {
+      font-size: clamp(10px, 0.75vw, 12px);
+      font-weight: 700;
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+      color: rgba(184, 192, 204, 0.65);
+      padding-top: 3px;
+    }
+
+    dd {
+      margin: 0;
+      font-size: clamp(13px, 1.05vw, 18px);
+      color: rgba(255, 255, 255, 0.78);
+    }
+  }
+}
+
+/* ── finale rides the same rail ── */
+.fx-panel--finale .fx-finale {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  text-align: center;
+  opacity: var(--v);
+  transform: translate3d(calc(var(--d) * -60px), 0, 0);
+  pointer-events: auto;
+
+  &__heading {
+    font-size: clamp(28px, 5vw, 88px);
+    font-weight: 700;
+    line-height: 1.06;
+    letter-spacing: -1px;
+    color: #fff;
+    margin: 0 0 40px;
+  }
+
+  &__cols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 42px;
+    text-align: left;
+    margin-bottom: 36px;
+  }
+
+  &__label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: $gold;
+    margin-bottom: 12px;
+  }
+
+  &__col p {
+    margin: 0;
+    font-size: clamp(15px, 1.15vw, 20px);
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  &__invite {
+    max-width: 68ch;
+    margin: 0 auto 34px;
+    font-size: clamp(15px, 1.15vw, 20px);
+    line-height: 1.8;
+    color: $muted;
+  }
+
+  &__link {
+    display: inline-block;
+    padding: 16px 40px;
+    font-size: clamp(12px, 0.9vw, 15px);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: $parchment;
+    border: 1px solid rgba(201, 168, 76, 0.55);
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: color 0.3s ease, border-color 0.3s ease,
+      background-color 0.3s ease;
+
+    &:hover {
+      color: #fff;
+      border-color: $gold-lit;
+      background: rgba(201, 168, 76, 0.16);
+    }
+  }
+}
+
+/* ══ mobile ═══════════════════════════════════════════════════════════════
+   The rail stays horizontal and still runs off vertical scroll, so there is
+   never a horizontal scrollbar. What changes: a much shallower fan, because a
+   27deg turn on a 390px-wide panel throws its far edge off screen, and the
+   two halves stack. */
+@media (max-width: 900px) {
+  .fx__stage {
+    perspective: 1000px;
+  }
+
+  .fx-panel {
+    padding: 4vh 20px;
+    transform: translate3d(0, calc(var(--a) * 16px), calc(var(--a) * -190px))
+      rotateY(calc(var(--d) * -13deg));
+
+    &__inner {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 20px;
+      align-content: center;
+    }
+  }
+
+  .fx-portrait {
+    /* Halved drift: at phone width the full parallax reads as sliding. */
+    transform: translate3d(calc(var(--d) * 20px), 0, 0);
+
+    &__frame {
+      /* Height-led here too, so it scales with the phone rather than sitting
+         at a fixed width, but capped so the copy below always has room. */
+      height: min(34vh, 300px);
+      width: auto;
+      margin: 0 auto;
+    }
+  }
+
+  .fx-info {
+    transform: translate3d(calc(var(--d) * -32px), 0, 0);
+
+    &__index {
+      margin-bottom: 10px;
+    }
+
+    &__name {
+      font-size: clamp(24px, 7.4vw, 38px);
+    }
+
+    &__role {
+      font-size: clamp(12px, 3.3vw, 15px);
+      letter-spacing: 1.4px;
+    }
+
+    &__dept {
+      margin-bottom: 14px;
+    }
+
+    &__tags {
+      gap: 8px 20px;
+      margin-bottom: 16px;
+    }
+
+    &__bio {
+      max-width: none;
+      font-size: clamp(14px, 3.9vw, 17px);
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+
+    &__meta {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2px;
+      padding-top: 14px;
+
+      dd {
+        margin-bottom: 10px;
+      }
+    }
+  }
+
+  .fx-panel--finale .fx-finale {
+    transform: translate3d(calc(var(--d) * -24px), 0, 0);
+
+    &__heading {
+      font-size: clamp(24px, 7.4vw, 36px);
+      margin-bottom: 28px;
+    }
+
+    &__cols {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+      margin-bottom: 26px;
+    }
+  }
+}
+
+/* ══ reduced motion: stacked, still, everything present ══ */
+.fx-static {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 96px 6vw 72px;
+  color: #fff;
+
+  &__list {
+    margin: 0 auto;
+    padding: 0;
+    max-width: 860px;
+    list-style: none;
+  }
+
+  &__item {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 28px;
+    padding: 30px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    h3 {
+      font-size: clamp(19px, 2vw, 27px);
+      margin: 0 0 6px;
+      color: #fff;
+    }
+  }
+
+  &__portrait {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__index {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: rgba(201, 168, 76, 0.7);
+    margin-bottom: 6px;
+  }
+
+  &__role {
+    margin: 0 0 12px;
+    font-size: 13px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: $gold-lit;
+  }
+
+  &__bio {
+    margin: 0 0 10px;
+    font-size: 15px;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  &__finale {
+    max-width: 860px;
+    margin: 40px auto 0;
+
+    h3 {
+      font-size: clamp(22px, 2.6vw, 36px);
+      margin: 0 0 20px;
+    }
+
+    p {
+      font-size: 15px;
+      line-height: 1.75;
+      color: rgba(255, 255, 255, 0.8);
+      margin: 0 0 14px;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 14px 32px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: $parchment;
+      border: 1px solid rgba(201, 168, 76, 0.55);
+    }
+  }
+
+  @media (max-width: 900px) {
+    padding: 84px 22px 56px;
+
+    &__item {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    &__portrait {
+      max-width: 190px;
+    }
+  }
+}
+
+/* Short viewports (small phones, and anything in landscape): the stacked
+   column does not fit at the standard sizes, and a panel clips rather than
+   scrolls — so the plate and the vertical rhythm both come down. */
+@media (max-width: 900px) and (max-height: 720px) {
+  .fx-panel {
+    padding: 3vh 20px;
+  }
+
+  .fx-portrait__frame {
+    height: min(22vh, 190px);
+  }
+
+  .fx-info {
+    &__index {
+      margin-bottom: 6px;
+    }
+
+    &__name {
+      font-size: clamp(20px, 6.2vw, 28px);
+      margin-bottom: 6px;
+    }
+
+    &__role {
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    &__dept {
+      margin-bottom: 10px;
+    }
+
+    &__tags {
+      margin-bottom: 10px;
+    }
+
+    &__bio {
+      font-size: 13.5px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    &__meta {
+      padding-top: 10px;
+      font-size: 12px;
+
+      dd {
+        margin-bottom: 6px;
+      }
+    }
+  }
+}
+
+/* One step per panel. mandatory + stop:always means a single gesture advances
+   exactly one member, however hard the flick. They are inert to pointers so
+   the text pinned behind them stays selectable. */
+.fx__step {
+  height: 100vh;
+  height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  pointer-events: none;
+}

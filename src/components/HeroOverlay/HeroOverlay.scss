@@ -487,3 +487,54 @@ $ease: 0.22s ease;
     height: 18px;
   }
 }
+/* ── Music toggle ── */
+.ho-music-toggle {
+  /* @include first — the panel mixin sets position: relative and would
+     otherwise override the absolute placement below. */
+  @include panel;
+  position: absolute;
+  top: 26px;
+  right: 26px;
+  z-index: 20;
+  pointer-events: auto;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  color: rgba(201, 168, 76, 0.55);
+  border-radius: 50%;
+  transition: color $ease, border-color $ease, transform $ease;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+  }
+
+  &:hover {
+    color: $gold;
+    border-color: $gold;
+    transform: scale(1.06);
+  }
+
+  &[aria-pressed="false"] {
+    color: rgba(201, 168, 76, 0.35);
+  }
+}
+
+@media (max-width: 768px) {
+  .ho-music-toggle {
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+
+    svg {
+      width: 17px;
+      height: 17px;
+    }
+  }
+}

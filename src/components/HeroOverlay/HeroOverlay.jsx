@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./HeroOverlay.scss";
 import { useExperienceStore } from "../../stores/experienceStore";
+import { useModalStore } from "../../stores/useModalStore";
+import { useAudioStore } from "../../stores/audioStore";
 
 /* ── Countdown target date ── */
 const TARGET_DATE = new Date("2026-10-15T09:00:00");
@@ -52,6 +54,22 @@ const IconAbout = () => (
   </svg>
 );
 
+const IconMusicOn = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 18V5l10-2v13" />
+    <circle cx="6" cy="18" r="3" />
+    <circle cx="16" cy="16" r="3" />
+  </svg>
+);
+
+const IconMusicOff = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 18V5l10-2v13" />
+    <circle cx="6" cy="18" r="3" />
+    <circle cx="16" cy="16" r="3" />
+    <path d="M3 3l18 18" />
+  </svg>
+);
 const IconCompass = () => (
   <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="24" cy="24" r="20" strokeWidth="0.8" />
@@ -71,12 +89,12 @@ const CdBox = ({ value, label }) => (
   </div>
 );
 
-/* ── Bottom nav items ── */
+/* ── Bottom nav items mapped to modal IDs ── */
 const NAV_LINKS = [
-  { id: "EVENTS", Icon: IconEvents },
-  { id: "SCHEDULE", Icon: IconSchedule },
-  { id: "TEAM", Icon: IconTeam },
-  { id: "ABOUT", Icon: IconAbout },
+  { id: "EVENTS", modalId: "events", Icon: IconEvents },
+  { id: "SCHEDULE", modalId: "schedule", Icon: IconSchedule },
+  { id: "TEAM", modalId: "zyverse_team", Icon: IconTeam },
+  { id: "ABOUT", modalId: "about", Icon: IconAbout },
 ];
 
 /* ── Dragon-Z component using official logo ── */
@@ -101,6 +119,13 @@ const DragonZ = () => (
 const HeroOverlay = ({ visible = true }) => {
   const time = useCountdown(TARGET_DATE);
   const { scrollProgress } = useExperienceStore();
+  const { openModal, setModalID } = useModalStore();
+  const { isMuted, isTrackMissing, toggleMute } = useAudioStore();
+
+  const handleNavClick = (modalId) => {
+    setModalID(modalId);
+    openModal();
+  };
 
   if (!visible) return null;
 
@@ -158,11 +183,31 @@ const HeroOverlay = ({ visible = true }) => {
         </div>
       </header>
 
+      {/* ── Music toggle (hidden until a track actually exists) ── */}
+      {!isTrackMissing && (
+        <button
+          className="ho-music-toggle"
+          onClick={toggleMute}
+          type="button"
+          aria-pressed={!isMuted}
+          aria-label={isMuted ? "Unmute music" : "Mute music"}
+          title={isMuted ? "Unmute music" : "Mute music"}
+        >
+          {isMuted ? <IconMusicOff /> : <IconMusicOn />}
+        </button>
+      )}
+
       {/* ── Layer 3: Bottom Navigation (PERMANENTLY FIXED — NEVER DISAPPEARS) ── */}
       <nav className="ho-bottom-nav">
         <div className="ho-bottom-panel">
-          {NAV_LINKS.map(({ id, Icon }) => (
-            <button key={id} className="ho-bottom-panel__item">
+          {NAV_LINKS.map(({ id, modalId, Icon }) => (
+            <button
+              key={id}
+              className="ho-bottom-panel__item"
+              onClick={() => handleNavClick(modalId)}
+              type="button"
+              aria-label={`Open ${id}`}
+            >
               <span className="ho-bottom-panel__icon"><Icon /></span>
               <span className="ho-bottom-panel__label">{id}</span>
             </button>

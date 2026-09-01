@@ -4,8 +4,16 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(12, 12, 12, 0.8);
-  backdrop-filter: blur(3px);
+  padding: 0;
+  /* Fog: blur and desaturate the whole 3D scene behind the panel, darker at
+     the edges than the centre so the modal reads as a clearing in the mist. */
+  background: radial-gradient(
+    ellipse at center,
+    rgba(20, 17, 11, 0.5) 0%,
+    rgba(6, 5, 4, 0.88) 100%
+  );
+  backdrop-filter: blur(16px) saturate(115%) brightness(0.72);
+  -webkit-backdrop-filter: blur(16px) saturate(115%) brightness(0.72);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -14,62 +22,153 @@
 
 .modal-container {
   position: relative;
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
   overflow: hidden;
-  background: transparent;
+  /* No panel. The fogged scene behind the overlay is the whole treatment;
+     content floats on it and legibility comes from the veil behind text. */
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   display: flex;
   flex-direction: column;
-  border: 1px solid #f1f1f1;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .modal-back-button {
   position: absolute;
   top: 26px;
-  right: 28px;
+  left: 28px;
   background: none;
   border: none;
   color: #f1f1f1;
   display: flex;
   align-items: center;
-  font-size: 14px;
-  font-weight: 500;
+  justify-content: center;
   cursor: pointer;
-  padding: 8px 12px;
-  transition: background-color 0.2s;
-  z-index: 1;
+  padding: 10px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  z-index: 2;
 
   svg {
+    width: 26px;
+    height: 26px;
     stroke-width: 6px;
   }
 
   &:hover {
-    text-decoration: underline;
+    color: #c9a84c;
+    background: rgba(201, 168, 76, 0.12);
+    transform: scale(1.1);
   }
 }
 
+/* Plain-text modals, now boxless: a centred reading column floating on the
+   fogged scene, with a feathered veil for legibility instead of a panel. */
 .modal-content {
-  padding: 40px 40px;
+  height: 100%;
+  padding: 96px 6vw 72px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   color: #f1f1f1;
+  display: grid;
+  align-content: center;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 168, 76, 0.45) transparent;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(201, 168, 76, 0.35);
+    border-radius: 5px;
+
+    &:hover {
+      background: rgba(201, 168, 76, 0.6);
+    }
+  }
 }
 
 .modal-title {
-  font-size: 18px;
-  margin-bottom: 24px;
-  color: #f1f1f1;
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto 34px;
+  padding-bottom: 20px;
+  font-size: clamp(26px, 2.6vw, 46px);
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.5px;
+  color: #f7eed7;
   position: relative;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.24);
+}
+
+/*
+ * Single column by default. When the entry carries a poster, split it into
+ * poster + text side by side once there is room, so the extra width widens the
+ * artwork instead of stretching the paragraphs into unreadably long lines.
+ */
+.modal-layout {
+  display: block;
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  .modal-content--with-image .modal-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+    gap: 44px;
+    align-items: start;
+  }
+}
+
+.modal-image-wrap {
+  margin-bottom: 32px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+  background: #0d0c0a;
+  text-align: center;
+}
+
+@media (min-width: 900px) {
+  .modal-content--with-image .modal-image-wrap {
+    margin-bottom: 0;
+  }
+}
+
+.modal-poster-image {
+  width: 100%;
+  height: auto;
+  max-height: 66vh;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
 }
 
 .modal-paragraphs {
-  margin-bottom: 30px;
+  max-width: 70ch;
+  margin-bottom: 38px;
 
   p {
-    margin-bottom: 16px;
-    line-height: 1.6;
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 20px;
+    line-height: 1.8;
+    font-size: clamp(15px, 1.1vw, 19px);
+    color: rgba(255, 255, 255, 0.95);
+    letter-spacing: 0.2px;
 
     &:last-child {
       margin-bottom: 0;
@@ -80,26 +179,556 @@
 .modal-link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  color: #f1f1f1;
+  gap: 10px;
+  padding: 17px 42px;
+  color: #f7eed7;
   text-decoration: none;
-  border: 1px solid #f1f1f1;
-  font-weight: 600;
-  font-size: 11px;
+  border: 1.5px solid rgba(201, 168, 76, 0.75);
+  background: rgba(201, 168, 76, 0.12);
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: clamp(13px, 0.95vw, 17px);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
 
   &:hover {
-    background: linear-gradient(90deg, #715116, #a93e1b);
-    box-shadow: 0 4px 20px rgba(58, 134, 255, 0.3);
-
-    svg {
-      transform: translateX(3px);
-    }
+    background: linear-gradient(90deg, #c9a84c, #e05e26);
+    color: #fff;
+    border-color: #f7eed7;
+    box-shadow: 0 6px 25px rgba(201, 168, 76, 0.4);
+    transform: translateY(-2px);
   }
 }
 
 @media (max-width: 768px) {
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-container {
+    width: 100%;
+    max-width: 100%;
+    max-height: 94vh;
+  }
+
   .modal-content {
-    padding: 40px 22px;
+    padding: 40px 26px;
+  }
+
+  .modal-title {
+    margin-bottom: 24px;
+    padding-left: 42px;
+  }
+
+  .modal-back-button {
+    top: 18px;
+    left: 18px;
+
+    svg {
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  .modal-poster-image {
+    max-height: 52vh;
+  }
+
+  .modal-paragraphs {
+    margin-bottom: 28px;
+  }
+
+  .modal-link {
+    padding: 14px 28px;
+  }
+}
+
+/* ══ Full-screen event deck ═══════════════════════════════════════════════
+   One poster serves the whole deck. It slides to the opposite half and flips
+   180° on the Y axis as the active event changes, with the incoming artwork
+   already painted on the hidden face — so the artwork appears to turn into
+   the next one rather than cross-fading between two separate elements. */
+.modal-overlay--full {
+  padding: 0;
+}
+
+.modal-container--bare {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.modal-title--floating {
+  position: absolute;
+  top: 34px;
+  left: 92px;
+  right: 6vw;
+  z-index: 4;
+  margin: 0;
+  padding: 0;
+  border-bottom: none;
+  font-size: clamp(13px, 0.95vw, 17px);
+  font-weight: 600;
+  letter-spacing: 3.5px;
+  text-transform: uppercase;
+  color: rgba(247, 238, 215, 0.72);
+  pointer-events: none;
+}
+
+.modal-deck {
+  position: relative;
+  height: 100%;
+}
+
+/* The poster lives outside the scrolling list so it is never rebuilt. */
+.modal-deck__stage {
+  position: absolute;
+  top: 104px;
+  bottom: 76px;
+  left: 6vw;
+  right: 6vw;
+  z-index: 2;
+  pointer-events: none;
+  perspective: 1800px;
+  perspective-origin: 50% 50%;
+}
+
+.modal-deck__poster {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: calc(50% - 2.5vw);
+  aspect-ratio: 16 / 9;
+  --shift: 0px;
+  transform: translateY(-50%) translateX(var(--shift)) rotateY(var(--flip, 0deg));
+  transform-style: preserve-3d;
+  will-change: transform;
+  /* Symmetric in-out: it accelerates off one side and settles on the other,
+     which is what sells it as a single object crossing the screen. */
+  transition: transform 1.15s cubic-bezier(0.65, 0, 0.35, 1);
+
+  &.is-right {
+    --shift: calc(100% + 5vw);
+  }
+}
+
+.modal-deck__face {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  background: rgba(8, 7, 5, 0.5);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.64),
+    0 0 44px rgba(201, 168, 76, 0.07);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Fixed highlight that reads as a sheen across the turning surface. */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      118deg,
+      transparent 36%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 64%
+    );
+  }
+
+  &--back {
+    transform: rotateY(180deg);
+  }
+}
+
+/* Warms every poster into cache so a face never turns up blank mid-flip. */
+.modal-deck__preload {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-events {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.modal-event {
+  height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 5vw;
+  padding: 104px 6vw 76px;
+  --copy-x: 5%;
+
+  /* Copy takes the half the poster is not occupying. */
+  &:nth-child(odd) .modal-event__text {
+    grid-column: 2;
+  }
+
+  &:nth-child(even) {
+    --copy-x: -5%;
+
+    .modal-event__text {
+      grid-column: 1;
+    }
+  }
+
+  &__text {
+    max-width: 62ch;
+  }
+
+  &__index {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: rgba(201, 168, 76, 0.8);
+    margin-bottom: 14px;
+  }
+
+  &__count {
+    color: rgba(201, 168, 76, 0.4);
+  }
+
+  &__name {
+    font-size: clamp(24px, 2.6vw, 44px);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: 0.4px;
+    color: #f7eed7;
+    margin: 0 0 10px;
+  }
+
+  &__tagline {
+    font-size: clamp(12px, 0.9vw, 15px);
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: rgba(201, 168, 76, 0.85);
+    margin: 0 0 22px;
+  }
+
+  &__description {
+    font-size: clamp(14px, 1.05vw, 18px);
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 32px;
+  }
+}
+
+/* Copy drifts in from the side opposite the poster, staggered into reading
+   order rather than arriving all at once. */
+.modal-event__text > * {
+  opacity: 0;
+  transform: translate3d(var(--copy-x), 24px, 0);
+  transition: opacity 0.68s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.modal-event.is-active .modal-event__text > * {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.modal-event.is-active .modal-event__text > *:nth-child(1) {
+  transition-delay: 0.16s;
+}
+.modal-event.is-active .modal-event__text > *:nth-child(2) {
+  transition-delay: 0.24s;
+}
+.modal-event.is-active .modal-event__text > *:nth-child(3) {
+  transition-delay: 0.32s;
+}
+.modal-event.is-active .modal-event__text > *:nth-child(4) {
+  transition-delay: 0.4s;
+}
+.modal-event.is-active .modal-event__text > *:nth-child(5) {
+  transition-delay: 0.48s;
+}
+
+/* ── Tablet / phone: poster pinned above the copy, flipping in place ──
+   Sliding a half-width poster sideways makes no sense once the layout is a
+   single column, so on small screens it keeps its position and only turns. */
+@media (max-width: 900px) {
+  .modal-title--floating {
+    top: 22px;
+    left: 68px;
+    right: 20px;
+    letter-spacing: 2.5px;
+  }
+
+  .modal-deck__stage {
+    top: 66px;
+    bottom: auto;
+    height: 27vh;
+    left: 20px;
+    right: 20px;
+    perspective: 1100px;
+  }
+
+  .modal-deck__poster {
+    top: 0;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    transform: translateY(0) rotateY(var(--flip, 0deg));
+
+    &.is-right {
+      --shift: 0px;
+    }
+  }
+
+  .modal-event {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 0;
+    /* Clears the pinned poster: stage top + stage height + breathing room. */
+    padding: calc(66px + 27vh + 30px) 22px 48px;
+    --copy-x: 0%;
+
+    &:nth-child(odd) .modal-event__text,
+    &:nth-child(even) .modal-event__text {
+      grid-column: 1;
+    }
+
+    &__text {
+      max-width: none;
+    }
+
+    &__index {
+      margin-bottom: 10px;
+    }
+
+    &__name {
+      font-size: clamp(23px, 6.4vw, 34px);
+    }
+
+    &__tagline {
+      margin-bottom: 16px;
+    }
+
+    &__description {
+      font-size: clamp(14px, 3.8vw, 16px);
+      line-height: 1.7;
+      margin-bottom: 26px;
+    }
+  }
+
+  .modal-link {
+    padding: 13px 26px;
+  }
+}
+
+/* Short phones in landscape have no room for a stacked poster. */
+@media (max-width: 900px) and (max-height: 520px) {
+  .modal-deck__stage {
+    height: 34vh;
+  }
+
+  .modal-event {
+    padding-top: calc(66px + 34vh + 18px);
+  }
+}
+
+/* Same layout, no travel. */
+@media (prefers-reduced-motion: reduce) {
+  .modal-deck__poster {
+    transition: none;
+  }
+
+  .modal-event__text > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+
+
+/* Mobile: the reading column keeps its measure, the gutters shrink. */
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 84px 22px 56px;
+  }
+
+  .modal-title {
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+  }
+}
+
+/* ══ About: cinematic reveal ══════════════════════════════════════════════
+   Scoped entirely to .modal-container--about, which only the About entry
+   receives — no other modal is touched, and About's own markup is unchanged.
+
+   The sequence: the panel starts in near-darkness, a warm glow rises behind
+   the copy, then the heading, the description and finally the button settle
+   in. Everything animates opacity and transform only, and the two background
+   layers are pseudo-elements, so no elements were added to the DOM. */
+.modal-container--about {
+  /* Contains the two layers below so they can never paint over the copy. */
+  isolation: isolate;
+
+  /* The darkness it emerges from — a flat veil lifting off. */
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: #050403;
+    opacity: 1;
+    animation: about-emerge 2900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  /* Warm antique-gold glow behind the text. It is anchored to the container
+     rather than the scrolling copy, and drifts slowly against it — that
+     offset is the whole of the parallax. */
+  &::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    z-index: 0;
+    width: min(1180px, 128vw);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(
+      circle,
+      rgba(201, 168, 76, 0.15) 0%,
+      rgba(146, 102, 40, 0.075) 34%,
+      rgba(90, 62, 24, 0.03) 52%,
+      transparent 68%
+    );
+    opacity: 0;
+    /* Only opacity is keyframed, so this transform stays live and the drift
+       keeps working after the reveal has finished. */
+    transform: translate3d(-50%, calc(-50% + var(--about-scroll, 0) * -26px), 0);
+    animation: about-glow 3600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .modal-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Copy drifts a little faster than the glow behind it. */
+  .modal-layout {
+    transform: translate3d(0, calc(var(--about-scroll, 0) * -14px), 0);
+  }
+
+  /* ── the stagger ── */
+  .modal-title {
+    opacity: 0;
+    animation: about-rise 1500ms cubic-bezier(0.22, 1, 0.36, 1) 450ms forwards;
+  }
+
+  .modal-paragraphs p {
+    opacity: 0;
+    animation: about-rise 1500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+
+    &:nth-child(1) {
+      animation-delay: 950ms;
+    }
+    &:nth-child(2) {
+      animation-delay: 1150ms;
+    }
+    &:nth-child(3) {
+      animation-delay: 1350ms;
+    }
+    &:nth-child(n + 4) {
+      animation-delay: 1550ms;
+    }
+  }
+
+  .modal-link {
+    opacity: 0;
+    animation: about-rise 1500ms cubic-bezier(0.22, 1, 0.36, 1) 1800ms forwards;
+  }
+}
+
+@keyframes about-emerge {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes about-glow {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes about-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Nothing here is load-bearing for reading About, so it all comes off. */
+@media (prefers-reduced-motion: reduce) {
+  .modal-container--about {
+    &::before {
+      display: none;
+    }
+
+    &::after {
+      opacity: 1;
+      animation: none;
+    }
+
+    .modal-layout {
+      transform: none;
+    }
+
+    .modal-title,
+    .modal-paragraphs p,
+    .modal-link {
+      opacity: 1;
+      animation: none;
+    }
   }
 }

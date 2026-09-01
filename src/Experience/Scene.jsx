@@ -1,7 +1,6 @@
 import { React, Suspense, useState, useRef, useEffect } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
-import { useProgress } from "@react-three/drei";
 
 import First from "./models/First";
 import Second from "./models/Second";
@@ -25,9 +24,10 @@ import {
 import Fire from "./components/Fire";
 import WaterFall from "./components/WaterFall";
 import { useExperienceStore } from "../stores/experienceStore";
+import { useDeferredProgress } from "./utils/useDeferredProgress";
 
 const LoadingManager = () => {
-  const { active, progress } = useProgress();
+  const { active, progress } = useDeferredProgress();
   const { setIsExperienceLoading } = useExperienceStore();
 
   useEffect(() => {
@@ -42,7 +42,7 @@ const LoadingManager = () => {
 
 const useChunkedLoading = () => {
   const [loadingStage, setLoadingStage] = useState(0);
-  const { active } = useProgress();
+  const { active } = useDeferredProgress();
   const prevActiveRef = useRef(true);
   const { incrementLoadedChunks } = useExperienceStore();
 
