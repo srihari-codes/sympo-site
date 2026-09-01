@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment & Credentials
+.env
+*.env
+client_secret.json
+gcp-credentials.json
+
+# SQLite & Uploads
+data/
+server/uploads/
+server/data/

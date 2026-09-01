@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "node server/server.js",
+    "dev:all": "concurrently \"npm run dev\" \"npm run server\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -12,8 +14,16 @@
   "dependencies": {
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.2",
+    "better-sqlite3": "^13.0.3",
+    "concurrently": "^10.0.5",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "glsl-noise": "^0.0.0",
+    "google-auth-library": "^11.0.2",
     "gsap": "^3.12.7",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.3.0",
     "normalize-wheel": "^1.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
