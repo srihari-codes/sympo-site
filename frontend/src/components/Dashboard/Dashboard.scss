@@ -356,6 +356,48 @@ $ui-font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color: $cream;
 }
 
+.dash-paydetails {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba($gold, 0.14);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    dt {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba($gold, 0.85);
+      align-self: center;
+    }
+
+    dd {
+      margin: 0;
+      font-size: 15px;
+      color: $cream;
+      word-break: break-word;
+      user-select: all;
+    }
+  }
+
+  @media (max-width: 480px) {
+    &__row {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+  }
+}
+
 .dash-team-code {
   display: flex;
   align-items: center;

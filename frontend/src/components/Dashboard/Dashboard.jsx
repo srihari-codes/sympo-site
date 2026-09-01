@@ -4,6 +4,17 @@ import { useAuthStore } from "../../stores/authStore";
 import { api, assetUrl } from "../../lib/api";
 import GoogleSignInButton from "./GoogleSignInButton";
 
+/* Registration fee + payee bank details shown on the payment step.
+   Every value below is a [PLACEHOLDER] — drop in the real account details. */
+const REGISTRATION_FEE = "₹150";
+const PAYMENT_INFO = [
+  { label: "Account name", value: "[ACCOUNT HOLDER NAME]" },
+  { label: "Account number", value: "[ACCOUNT NUMBER]" },
+  { label: "IFSC code", value: "[IFSC CODE]" },
+  { label: "Bank & branch", value: "[BANK NAME, BRANCH]" },
+  { label: "UPI ID", value: "[UPI ID]" },
+];
+
 /* ══════════════════════════════════════════════════════════
    Shared bits
    ══════════════════════════════════════════════════════════ */
@@ -212,6 +223,7 @@ const OnboardingStep = () => {
 const RegisterStep = () => {
   const refresh = useAuthStore((s) => s.refresh);
   const [events, setEvents] = useState([]);
+  const [phase, setPhase] = useState("event"); // "event" -> "payment"
   const [eventId, setEventId] = useState("");
   const [screenshot, setScreenshot] = useState(null);
   const [error, setError] = useState(null);
@@ -225,6 +237,15 @@ const RegisterStep = () => {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  const selectedEvent = events.find((ev) => ev.id === eventId);
+
+  const goToPayment = (e) => {
+    e.preventDefault();
+    setError(null);
+    if (!eventId) return setError("Select an event to continue.");
+    setPhase("payment");
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -248,31 +269,67 @@ const RegisterStep = () => {
 
   if (loading) return <p className="dash-note">Loading events…</p>;
 
+  /* ── Sub-step 1: pick an event ── */
+  if (phase === "event") {
+    return (
+      <form className="dash-step" onSubmit={goToPayment}>
+        <h3 className="dash-step__title">Choose your event</h3>
+        <p className="dash-step__lead">
+          You may register for <strong>one</strong> event. Pick it here, then pay and upload
+          your screenshot on the next step.
+        </p>
+
+        <div className="dash-events">
+          {events.map((ev) => (
+            <label
+              key={ev.id}
+              className={`dash-event${eventId === ev.id ? " is-selected" : ""}`}
+            >
+              <input
+                type="radio"
+                name="event"
+                value={ev.id}
+                checked={eventId === ev.id}
+                onChange={() => setEventId(ev.id)}
+              />
+              <span className="dash-event__name">{ev.name}</span>
+              <span className="dash-event__tag">{ev.tagline}</span>
+            </label>
+          ))}
+        </div>
+
+        {error && <p className="dash-error">{error}</p>}
+
+        <button className="dash-btn" type="submit" disabled={!eventId}>
+          Next — payment
+        </button>
+      </form>
+    );
+  }
+
+  /* ── Sub-step 2: pay + upload screenshot ── */
   return (
     <form className="dash-step" onSubmit={submit}>
-      <h3 className="dash-step__title">Register for an event</h3>
+      <h3 className="dash-step__title">Payment</h3>
       <p className="dash-step__lead">
-        You may register for <strong>one</strong> event. Registration fee is ₹150 — pay first,
-        then upload the screenshot below.
+        Registering for <strong>{selectedEvent?.name || "your event"}</strong>. Pay the{" "}
+        {REGISTRATION_FEE} registration fee to the account below, then upload a screenshot of
+        the payment.
       </p>
 
-      <div className="dash-events">
-        {events.map((ev) => (
-          <label
-            key={ev.id}
-            className={`dash-event${eventId === ev.id ? " is-selected" : ""}`}
-          >
-            <input
-              type="radio"
-              name="event"
-              value={ev.id}
-              checked={eventId === ev.id}
-              onChange={() => setEventId(ev.id)}
-            />
-            <span className="dash-event__name">{ev.name}</span>
-            <span className="dash-event__tag">{ev.tagline}</span>
-          </label>
-        ))}
+      <div className="dash-card">
+        <div className="dash-card__head">
+          <h4>Payment details</h4>
+          <span className="dash-badge">{REGISTRATION_FEE}</span>
+        </div>
+        <dl className="dash-paydetails">
+          {PAYMENT_INFO.map((row) => (
+            <div key={row.label} className="dash-paydetails__row">
+              <dt>{row.label}</dt>
+              <dd>{row.value}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
 
       <FileField
@@ -280,13 +337,27 @@ const RegisterStep = () => {
         name="payment_screenshot"
         file={screenshot}
         onChange={setScreenshot}
+        hint="Clear screenshot showing the amount, date and reference number."
       />
 
       {error && <p className="dash-error">{error}</p>}
 
-      <button className="dash-btn" type="submit" disabled={busy}>
-        {busy ? "Submitting…" : "Submit registration"}
-      </button>
+      <div className="dash-choice">
+        <button
+          type="button"
+          className="dash-btn dash-btn--ghost"
+          onClick={() => {
+            setError(null);
+            setPhase("event");
+          }}
+          disabled={busy}
+        >
+          Back
+        </button>
+        <button className="dash-btn" type="submit" disabled={busy || !screenshot}>
+          {busy ? "Submitting…" : "Submit registration"}
+        </button>
+      </div>
     </form>
   );
 };
