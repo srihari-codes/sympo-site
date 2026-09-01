@@ -52,6 +52,9 @@ services:
     environment:
       DOMAIN: ${DOMAIN:-localhost}
     volumes:
+      # Real TLS cert (fullchain.pem + privkey.pem). Committed for this private
+      # repo — currently a Cloudflare Origin CA cert for zyverse.whitehatians.in.
+      - ./certs:/etc/nginx/origin-certs:ro
       - certbot_conf:/etc/letsencrypt:ro
       - certbot_www:/var/www/certbot
     mem_limit: 128m

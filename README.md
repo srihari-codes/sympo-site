@@ -73,22 +73,32 @@ docker compose up -d --build
 ```
 
 - `http://DOMAIN` → redirects to `https://`
-- `https://DOMAIN` → the site (self-signed cert until step 4, so the browser warns)
+- `https://DOMAIN` → the site
 
 Check: `docker compose ps`, `docker compose logs -f`.
 
-### 4. Real TLS certificate (needs a real domain pointing at the server)
+### 4. TLS certificate
 
-```bash
-docker compose --profile ssl run --rm certbot     # issues the cert
-docker compose restart frontend                    # picks it up automatically
-```
+nginx picks a cert in this order (see `frontend/nginx/20-select-cert.sh`):
 
-Renewal (cron, monthly):
+1. **`certs/fullchain.pem` + `certs/privkey.pem`** (bind-mounted at
+   `/etc/nginx/origin-certs`). This repo ships a **Cloudflare Origin CA**
+   certificate for `zyverse.whitehatians.in` here, so a proxied Cloudflare setup
+   works out of the box. In the Cloudflare dashboard set
+   **SSL/TLS → Overview → Full (strict)**.
+   To rotate: replace the two files, `docker compose restart frontend`.
+2. A Let's Encrypt cert for `$DOMAIN` (DNS-only / no Cloudflare proxy):
+   ```bash
+   docker compose --profile ssl run --rm certbot      # issue
+   docker compose restart frontend                     # picked up automatically
+   # renewal (cron, monthly):
+   0 3 1 * * cd /path/to/sympo-site && docker compose --profile ssl run --rm certbot renew && docker compose restart frontend
+   ```
+3. Otherwise a bundled self-signed cert (browser / Cloudflare "526" warning).
 
-```bash
-0 3 1 * *  cd /path/to/sympo-site && docker compose --profile ssl run --rm certbot renew && docker compose restart frontend
-```
+> The Origin CA key is committed because this is a private repo. If the repo
+> ever becomes public or is widely shared, revoke it in Cloudflare
+> (SSL/TLS → Origin Server) and issue a new one.
 
 ### 5. Updates
 
