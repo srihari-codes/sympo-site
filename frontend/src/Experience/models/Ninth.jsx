@@ -121,12 +121,12 @@ const PAPER_ROTATION_X = -1.268275; // radians (-72.667°)
 const PAPER_WIDTH = 0.271675;
 const PAPER_HEIGHT = 0.369273;
 
-// event_poster.png is 537 × 757 (aspect 0.7094), very slightly narrower than
-// the page. Fit it to the page's full height and inset ~4.9mm each side rather
-// than stretching it 3.7% wide to fill the paper edge to edge. To fill the
+// Event posters are 1587 × 2245 (aspect 0.7069), very slightly narrower than
+// the page. Fit it to the page's full height and inset proportionally rather
+// than stretching it wide to fill the paper edge to edge. To fill the
 // page exactly instead, use PAPER_WIDTH / PAPER_HEIGHT here.
 const POSTER_HEIGHT = PAPER_HEIGHT;
-const POSTER_WIDTH = Math.min(PAPER_WIDTH, PAPER_HEIGHT * (537 / 757));
+const POSTER_WIDTH = Math.min(PAPER_WIDTH, PAPER_HEIGHT * (1587 / 2245));
 
 // Clearance above the page, measured along the page normal.
 const POSTER_REST_LIFT = 0.0012;

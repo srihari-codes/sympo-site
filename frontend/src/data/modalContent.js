@@ -3,48 +3,48 @@ export const modalContent = {
     title: "Events & Competitions",
     link: "https://zyverse.whitehatians.in",
     linkText: "Register Now (Fee: ₹150/-)",
-    // Placeholder art for now — each poster is framed 16:9, so swap in
+    // Each poster is framed 3:4 portrait (1587×2245 px), so use
     // landscape artwork per event.
     eventList: [
       {
         id: "scrolls-of-the-realm",
         name: "Scrolls of the Realm",
         tagline: "Technical Paper & Research Presentation",
-        image: "/textures/event_poster.png",
+        image: "/textures/Event_Posters/Scrolls_of_Realm.png",
         description:
-          "Present original research to a panel of faculty and industry reviewers. Submit an abstract ahead of the symposium, then defend your work in a timed presentation followed by open questions. Papers across cyber security, AI and emerging technology are all welcome.",
+          "Providing opportunities for engineering students to showcase their innovative ideas and technical solutions. Participants can present their work in areas like cyber security, AI, Networking and computer science related fields.",
       },
       {
         id: "iron-throne",
         name: "Iron Throne",
         tagline: "Competitive Coding & Algorithmic Conquest",
-        image: "/textures/event_poster.png",
+        image: "/textures/Event_Posters/Iron_Throne.png",
         description:
-          "A timed programming contest that escalates from warm-up problems to hard algorithmic challenges. Each round narrows the field until only a handful remain to contest the final. Bring the language of your choice — solutions are judged on correctness first, runtime second.",
+          "Iron Throne is a Jeopardy-style Capture the Flag (CTF) challenge where participants solve a series of cybersecurity tasks to uncover hidden flags. It tests skills in areas such as cryptography, web security, digital forensics, OSINT, reverse engineering, and network analysis. The goal is to solve challenges, collect flags, earn points, and climb the leaderboard.",
       },
       {
         id: "siege-of-servers",
         name: "Siege of Servers",
         tagline: "Cyber Defence, Capture The Flag & Network Exploits",
-        image: "/textures/event_poster.png",
+        image: "/textures/Event_Posters/Siege_of_Servers.png",
         description:
-          "A jeopardy-style CTF spanning web exploitation, cryptography, digital forensics and network defence. Flags carry escalating point values and a live scoreboard tracks every capture right up to the final lockout.",
+          "An Attack-Defense CTF where teams compete to secure their own servers while finding and exploiting vulnerabilities in their opponents’ systems. Participants must balance offensive and defensive strategies through vulnerability exploitation and system hardening. The team that defends effectively, attacks successfully, and scores the most points wins.",
       },
       {
         id: "winter-war",
         name: "Winter War",
         tagline: "High-Intensity Technical & Gaming Arena",
-        image: "/textures/event_poster.png",
+        image: "/textures/Event_Posters/Winter_War.png",
         description:
-          "A fast knockout bracket pairing technical quickfire rounds with competitive gaming. Teams advance through elimination stages where reaction speed counts for as much as accuracy.",
+          "A Cybersecurity challenge where participants start with a vulnerable machine and work their way from initial access to full system control. The goal is to discover vulnerabilities, exploit them, escalate privileges, and capture the hidden flags.",
       },
       {
         id: "tessarions-trail",
         name: "Tessarion's Trail",
         tagline: "Cryptic Treasure Hunt & Cipher Quest",
-        image: "/textures/event_poster.png",
+        image: "/textures/Event_Posters/Tessarians_Trail.png",
         description:
-          "A campus-wide hunt built on layered ciphers and cryptic clues. Every riddle you break unlocks the next coordinate, and the first team to reach the final vault takes the prize.",
+          "The Participants investigate a crime using OSINT, connect clues and digital traces, uncover the criminal’s identity, and submit their name as the final flag.",
       },
     ],
   },
