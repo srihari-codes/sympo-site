@@ -271,8 +271,9 @@ $ui-font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 .dash-event {
   display: grid;
   grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
   column-gap: 12px;
+  row-gap: 2px;
   align-items: center;
   padding: 13px 16px;
   border: 1px solid rgba($gold, 0.3);
@@ -281,7 +282,7 @@ $ui-font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   transition: border-color 0.2s ease, background 0.2s ease;
 
   input {
-    grid-row: 1 / 3;
+    grid-row: 1 / 4;
     accent-color: $gold;
   }
 
@@ -296,9 +297,60 @@ $ui-font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: rgba($cream, 0.6);
   }
 
+  &__fill {
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  &__bar {
+    flex: 1;
+    position: relative;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba($gold, 0.16);
+    overflow: hidden;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: calc(var(--fill, 0) * 1%);
+      background: $gold;
+      transition: width 0.3s ease;
+    }
+  }
+
+  &__fill-text {
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    color: rgba($cream, 0.55);
+    white-space: nowrap;
+  }
+
   &.is-selected {
     border-color: $gold;
     background: rgba($gold, 0.12);
+  }
+
+  &.is-disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+
+    input {
+      cursor: not-allowed;
+    }
+  }
+
+  &.is-full {
+    .dash-event__bar::after {
+      background: $ember;
+    }
+    .dash-event__fill-text {
+      color: #ff9d7a;
+    }
   }
 }
 

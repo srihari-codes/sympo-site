@@ -420,6 +420,7 @@ const RegisterStep = () => {
   const mode = useAuthStore((s) => s.user?.mode);
   const fee = feeFor(mode);
   const [events, setEvents] = useState([]);
+  const [totals, setTotals] = useState({ participants: 0, capacity: 76 });
   const [phase, setPhase] = useState("event"); // "event" -> "payment"
   const [eventId, setEventId] = useState("");
   const [transactionId, setTransactionId] = useState("");
@@ -428,13 +429,26 @@ const RegisterStep = () => {
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadEvents = () =>
     api
       .listEvents()
-      .then((data) => setEvents(data.events || []))
+      .then((data) => {
+        setEvents(data.events || []);
+        setTotals({
+          participants: data.totalParticipants ?? 0,
+          capacity: data.totalCapacity ?? 76,
+        });
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+
+  useEffect(() => {
+    loadEvents();
   }, []);
+
+  // A solo entry needs 1 free spot, a team needs 2.
+  const need = mode === "team" ? 2 : 1;
+  const isBlocked = (ev) => ev.isFull || ev.spotsLeft < need;
 
   const selectedEvent = events.find((ev) => ev.id === eventId);
 
@@ -442,6 +456,13 @@ const RegisterStep = () => {
     e.preventDefault();
     setError(null);
     if (!eventId) return setError("Select an event to continue.");
+    if (selectedEvent && isBlocked(selectedEvent)) {
+      return setError(
+        selectedEvent.isFull
+          ? `${selectedEvent.name} filled up. Pick another event.`
+          : `${selectedEvent.name} has only ${selectedEvent.spotsLeft} spot left — not enough for a team. Pick another event.`
+      );
+    }
     setPhase("payment");
   };
 
@@ -471,6 +492,12 @@ const RegisterStep = () => {
     } catch (err) {
       setError(err.message);
       setBusy(false);
+      // A capacity rejection means our fill numbers are stale — refresh them
+      // and send the user back to re-pick the event.
+      if (/\b(full|place[s]? left)\b/i.test(err.message || "")) {
+        loadEvents();
+        setPhase("event");
+      }
     }
   };
 
@@ -487,23 +514,53 @@ const RegisterStep = () => {
           here, then pay and upload your screenshot on the next step.
         </p>
 
+        <p className="dash-field__hint">
+          {totals.participants} of {totals.capacity} places filled across all events.
+        </p>
+
         <div className="dash-events">
-          {events.map((ev) => (
-            <label
-              key={ev.id}
-              className={`dash-event${eventId === ev.id ? " is-selected" : ""}`}
-            >
-              <input
-                type="radio"
-                name="event"
-                value={ev.id}
-                checked={eventId === ev.id}
-                onChange={() => setEventId(ev.id)}
-              />
-              <span className="dash-event__name">{ev.name}</span>
-              <span className="dash-event__tag">{ev.tagline}</span>
-            </label>
-          ))}
+          {events.map((ev) => {
+            const blocked = isBlocked(ev);
+            const pct = ev.capacity
+              ? Math.min(100, Math.round((ev.participants / ev.capacity) * 100))
+              : 0;
+            const fillText = ev.isFull
+              ? "Full"
+              : blocked
+              ? `Only ${ev.spotsLeft} spot left · teams can't join`
+              : `${ev.participants} / ${ev.capacity} filled · ${ev.spotsLeft} left`;
+
+            return (
+              <label
+                key={ev.id}
+                className={
+                  `dash-event` +
+                  (eventId === ev.id ? " is-selected" : "") +
+                  (ev.isFull ? " is-full" : "") +
+                  (blocked ? " is-disabled" : "")
+                }
+              >
+                <input
+                  type="radio"
+                  name="event"
+                  value={ev.id}
+                  checked={eventId === ev.id}
+                  disabled={blocked}
+                  onChange={() => setEventId(ev.id)}
+                />
+                <span className="dash-event__name">{ev.name}</span>
+                <span className="dash-event__tag">{ev.tagline}</span>
+                <span className="dash-event__fill">
+                  <span
+                    className="dash-event__bar"
+                    style={{ "--fill": pct }}
+                    aria-hidden="true"
+                  />
+                  <span className="dash-event__fill-text">{fillText}</span>
+                </span>
+              </label>
+            );
+          })}
         </div>
 
         {error && <p className="dash-error">{error}</p>}

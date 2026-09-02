@@ -190,10 +190,17 @@ function viewOverview() {
       <div class="card"><div class="n">${st.pending}</div><div class="l">Pending</div></div>
       <div class="card"><div class="n">${st.approved}</div><div class="l">Approved</div></div>
       <div class="card"><div class="n">${st.rejected}</div><div class="l">Rejected</div></div>
+      <div class="card"><div class="n">${s.participants ?? 0} / ${s.totalCapacity ?? 76}</div><div class="l">Participants</div></div>
     </div>
-    <h3>Registrations by event</h3>
-    <table><thead><tr><th>Event</th><th>Count</th></tr></thead><tbody>
-      ${s.registrationsByEvent.map((e) => `<tr><td>${esc(e.eventName)}</td><td>${e.count}</td></tr>`).join("") || `<tr><td colspan="2" class="muted">None yet</td></tr>`}
+    <h3>Fill by event</h3>
+    <table><thead><tr><th>Event</th><th>Registrations</th><th>Participants</th><th>Capacity</th><th>Left</th></tr></thead><tbody>
+      ${s.registrationsByEvent.map((e) => `<tr>
+        <td>${esc(e.eventName)}</td>
+        <td>${e.count}</td>
+        <td>${e.participants ?? "—"}</td>
+        <td>${e.capacity ?? "—"}</td>
+        <td>${e.isFull ? `<span class="badge rejected">FULL</span>` : (e.spotsLeft ?? "—")}</td>
+      </tr>`).join("")}
     </tbody></table>`;
 }
 

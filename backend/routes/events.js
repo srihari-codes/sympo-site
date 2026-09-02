@@ -6,45 +6,94 @@ import { upload } from '../middleware/upload.js';
 
 const router = express.Router();
 
+// `capacity` is the hard cap on *participants* (not registrations) for the
+// event. A solo registration is 1 participant, a team registration is 2 — so
+// Scrolls fits 12 solos, or 6 teams, or any mix totalling 12; every other
+// event fits 16. The per-event caps sum to TOTAL_CAPACITY (76).
 export const HARDCODED_EVENTS = [
   {
     id: 'scrolls-of-the-realm',
     name: 'Scrolls of the Realm',
     tagline: 'Technical Paper & Research Presentation',
     category: 'Paper Presentation',
+    capacity: 12,
   },
   {
     id: 'iron-throne',
     name: 'Iron Throne',
     tagline: 'Competitive Coding & Algorithmic Conquest',
     category: 'Coding',
+    capacity: 16,
   },
   {
     id: 'siege-of-servers',
     name: 'Siege of Servers',
     tagline: 'Cyber Defence, Capture The Flag & Network Exploits',
     category: 'CTF & Security',
+    capacity: 16,
   },
   {
     id: 'winter-war',
     name: 'Winter War',
     tagline: 'High-Intensity Technical & Gaming Arena',
     category: 'Gaming & Tech',
+    capacity: 16,
   },
   {
     id: 'tessarions-trail',
     name: 'Tessarion\'s Trail',
     tagline: 'Cryptic Treasure Hunt & Cipher Quest',
     category: 'Treasure Hunt',
+    capacity: 16,
   },
 ];
 
+export const TOTAL_CAPACITY = HARDCODED_EVENTS.reduce((n, e) => n + e.capacity, 0);
+
+const participantsForMode = (mode) => (mode === 'team' ? 2 : 1);
+
+/**
+ * Live participant fill for one event. Rejected registrations free their spot;
+ * pending and approved both hold one.
+ */
+export function eventFill(eventId) {
+  const row = db
+    .prepare(
+      `SELECT COALESCE(SUM(CASE WHEN u.mode = 'team' THEN 2 ELSE 1 END), 0) AS participants,
+              COUNT(*) AS registrations
+       FROM registrations r
+       JOIN users u ON u.id = r.user_id
+       WHERE r.event_id = ? AND r.status != 'rejected'`
+    )
+    .get(eventId);
+  return { participants: row.participants, registrations: row.registrations };
+}
+
+/** Every event decorated with its current fill / remaining spots. */
+export function eventsWithFill() {
+  return HARDCODED_EVENTS.map((e) => {
+    const { participants, registrations } = eventFill(e.id);
+    return {
+      ...e,
+      participants,
+      registrations,
+      spotsLeft: Math.max(0, e.capacity - participants),
+      isFull: participants >= e.capacity,
+    };
+  });
+}
+
 /**
  * GET /api/events
- * List all available symposium events
+ * All events with their live capacity / fill.
  */
 router.get('/', (req, res) => {
-  res.json({ events: HARDCODED_EVENTS });
+  const events = eventsWithFill();
+  res.json({
+    events,
+    totalCapacity: TOTAL_CAPACITY,
+    totalParticipants: events.reduce((n, e) => n + e.participants, 0),
+  });
 });
 
 /**
@@ -91,8 +140,8 @@ router.post(
       const file = req.file;
 
       // 3. Validate event ID
-      const eventExists = HARDCODED_EVENTS.some((e) => e.id === event_id);
-      if (!event_id || !eventExists) {
+      const event = HARDCODED_EVENTS.find((e) => e.id === event_id);
+      if (!event_id || !event) {
         return reject(400, { error: 'Invalid event selected. Please select a valid symposium event.' });
       }
 
@@ -120,9 +169,24 @@ router.post(
         });
       }
 
+      // 6. Enforce the event's participant cap. Everything from here to the
+      // INSERT runs synchronously with no await, so this check + insert is
+      // atomic for the single backend process — no double-booking a last spot.
+      const incoming = participantsForMode(user.mode || 'solo');
+      const { participants } = eventFill(event_id);
+      if (participants + incoming > event.capacity) {
+        const left = Math.max(0, event.capacity - participants);
+        return reject(409, {
+          error:
+            left === 0
+              ? `'${event.name}' is full — all ${event.capacity} places are taken. Please choose another event.`
+              : `'${event.name}' has only ${left} place${left === 1 ? '' : 's'} left — not enough for a team of 2. Register solo or choose another event.`,
+        });
+      }
+
       const paymentScreenshotUrl = `/uploads/${file.filename}`;
 
-      // 6. Insert registration
+      // 7. Insert registration
       const result = db.prepare(`
         INSERT INTO registrations (user_id, event_id, payment_screenshot_url, transaction_id, status)
         VALUES (?, ?, ?, ?, 'pending')

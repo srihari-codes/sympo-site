@@ -1,7 +1,7 @@
 import express from 'express';
 import db from '../db.js';
 import { authenticateToken, requireAdmin, isAdminEmail } from '../middleware/auth.js';
-import { HARDCODED_EVENTS } from './events.js';
+import { HARDCODED_EVENTS, TOTAL_CAPACITY, eventFill } from './events.js';
 
 const router = express.Router();
 
@@ -34,11 +34,19 @@ router.get('/summary', (req, res) => {
     .all()
     .reduce((acc, r) => ({ ...acc, [r.status]: r.n }), {});
 
-  const byEvent = db
-    .prepare('SELECT event_id, COUNT(*) AS n FROM registrations GROUP BY event_id')
-    .all()
-    .map((r) => ({ eventId: r.event_id, eventName: eventName(r.event_id), count: r.n }))
-    .sort((a, b) => b.count - a.count);
+  // Every event, in fixed order, with its participant fill against capacity.
+  const byEvent = HARDCODED_EVENTS.map((e) => {
+    const { participants, registrations } = eventFill(e.id);
+    return {
+      eventId: e.id,
+      eventName: e.name,
+      count: registrations,
+      participants,
+      capacity: e.capacity,
+      spotsLeft: Math.max(0, e.capacity - participants),
+      isFull: participants >= e.capacity,
+    };
+  });
 
   res.json({
     users: one('SELECT COUNT(*) AS n FROM users'),
@@ -47,6 +55,8 @@ router.get('/summary', (req, res) => {
     soloRegistrations: one("SELECT COUNT(*) AS n FROM registrations r JOIN users u ON u.id = r.user_id WHERE u.mode = 'solo'"),
     teamRegistrations: one("SELECT COUNT(*) AS n FROM registrations r JOIN users u ON u.id = r.user_id WHERE u.mode = 'team'"),
     teams: one("SELECT COUNT(*) AS n FROM teammates"),
+    participants: byEvent.reduce((n, e) => n + e.participants, 0),
+    totalCapacity: TOTAL_CAPACITY,
     registrationsByStatus: {
       pending: byStatus.pending || 0,
       approved: byStatus.approved || 0,
