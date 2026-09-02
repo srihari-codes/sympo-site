@@ -4,15 +4,15 @@ import { useAuthStore } from "../../stores/authStore";
 import { api, assetUrl } from "../../lib/api";
 import GoogleSignInButton from "./GoogleSignInButton";
 
-/* Registration fee + payee bank details shown on the payment step.
-   Every value below is a [PLACEHOLDER] — drop in the real account details. */
+/* Registration fee + payee bank details shown on the payment step. */
 const REGISTRATION_FEE = "₹150";
 const PAYMENT_INFO = [
-  { label: "Account name", value: "[ACCOUNT HOLDER NAME]" },
-  { label: "Account number", value: "[ACCOUNT NUMBER]" },
-  { label: "IFSC code", value: "[IFSC CODE]" },
-  { label: "Bank & branch", value: "[BANK NAME, BRANCH]" },
-  { label: "UPI ID", value: "[UPI ID]" },
+  { label: "Account name", value: "VALLIAMMAI ENGINEERING COLLEGE" },
+  { label: "Bank", value: "City Union Bank Ltd" },
+  { label: "Account number", value: "117109000031450" },
+  { label: "IFSC code", value: "CIUB0000117" },
+  { label: "Branch", value: "Tambaram Branch (Extn Counter)" },
+  { label: "MICR no", value: "600054011" },
 ];
 
 /* ══════════════════════════════════════════════════════════
@@ -225,6 +225,7 @@ const RegisterStep = () => {
   const [events, setEvents] = useState([]);
   const [phase, setPhase] = useState("event"); // "event" -> "payment"
   const [eventId, setEventId] = useState("");
+  const [transactionId, setTransactionId] = useState("");
   const [screenshot, setScreenshot] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -251,10 +252,19 @@ const RegisterStep = () => {
     e.preventDefault();
     setError(null);
     if (!eventId) return setError("Select an event to register for.");
+
+    const txnId = transactionId.trim();
+    if (!txnId) {
+      return setError("Enter the Reference ID / Transaction ID shown on your payment receipt.");
+    }
+    if (txnId.length < 6) {
+      return setError("That Reference ID looks too short — copy it exactly from your bank receipt.");
+    }
     if (!screenshot) return setError("Upload your payment screenshot to confirm registration.");
 
     const fd = new FormData();
     fd.append("event_id", eventId);
+    fd.append("transaction_id", txnId);
     fd.append("payment_screenshot", screenshot);
 
     setBusy(true);
@@ -332,12 +342,28 @@ const RegisterStep = () => {
         </dl>
       </div>
 
+      <Field
+        label="Reference ID / Transaction ID *"
+        hint="The UTR / reference number your bank shows for this transfer. It must match the screenshot — organisers verify the two against the bank statement."
+      >
+        <input
+          type="text"
+          name="transaction_id"
+          value={transactionId}
+          onChange={(e) => setTransactionId(e.target.value)}
+          placeholder="e.g. CIUB431299001234"
+          autoComplete="off"
+          maxLength={40}
+          required
+        />
+      </Field>
+
       <FileField
-        label="Payment screenshot"
+        label="Payment screenshot *"
         name="payment_screenshot"
         file={screenshot}
         onChange={setScreenshot}
-        hint="Clear screenshot showing the amount, date and reference number."
+        hint="Required. Clear screenshot showing the amount, date and reference number."
       />
 
       {error && <p className="dash-error">{error}</p>}
@@ -354,7 +380,11 @@ const RegisterStep = () => {
         >
           Back
         </button>
-        <button className="dash-btn" type="submit" disabled={busy || !screenshot}>
+        <button
+          className="dash-btn"
+          type="submit"
+          disabled={busy || !screenshot || !transactionId.trim()}
+        >
           {busy ? "Submitting…" : "Submit registration"}
         </button>
       </div>
@@ -571,8 +601,16 @@ const DashboardHome = () => {
           </span>
         </div>
         <p className="dash-event-line">{eventName}</p>
+        {registration?.transactionId && (
+          <dl className="dash-paydetails">
+            <div className="dash-paydetails__row">
+              <dt>Reference ID</dt>
+              <dd>{registration.transactionId}</dd>
+            </div>
+          </dl>
+        )}
         <p className="dash-field__hint">
-          Your payment screenshot is under review by the organisers.
+          Your payment reference and screenshot are under review by the organisers.
         </p>
       </div>
 
