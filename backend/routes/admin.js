@@ -61,7 +61,7 @@ router.get('/summary', (req, res) => {
 router.get('/registrations', (req, res) => {
   const rows = db
     .prepare(
-      `SELECT r.id, r.event_id, r.payment_screenshot_url, r.status, r.created_at,
+      `SELECT r.id, r.event_id, r.payment_screenshot_url, r.transaction_id, r.status, r.created_at,
               u.id AS user_id, u.first_name, u.last_name, u.email, u.phone_number,
               u.id_card_url, u.profile_pic_url, u.is_onboarded,
               t.id AS team_id, t.name AS team_name, t.code AS team_code, t.leader_id
@@ -80,6 +80,7 @@ router.get('/registrations', (req, res) => {
       createdAt: r.created_at,
       event: { id: r.event_id, name: eventName(r.event_id) },
       paymentScreenshotUrl: r.payment_screenshot_url,
+      transactionId: r.transaction_id,
       user: {
         id: r.user_id,
         firstName: r.first_name,

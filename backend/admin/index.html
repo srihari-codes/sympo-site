@@ -209,14 +209,14 @@ function viewRegistrations() {
       <span class="muted">${rows.length} total</span>
     </div>
     <table><thead><tr>
-      <th>Participant</th><th>Event</th><th>Team</th><th>Payment</th><th>ID card</th><th>Status</th>
+      <th>Participant</th><th>Event</th><th>Team</th><th>Reference ID</th><th>Payment</th><th>ID card</th><th>Status</th>
     </tr></thead><tbody id="rbody">
       ${rows.map(regRow).join("")}
     </tbody></table>`;
 }
 function regRow(r) {
   const u = r.user;
-  return `<tr data-search="${esc((u.firstName+" "+u.lastName+" "+u.email+" "+r.event.name).toLowerCase())}">
+  return `<tr data-search="${esc((u.firstName+" "+u.lastName+" "+u.email+" "+r.event.name+" "+(r.transactionId||"")).toLowerCase())}">
     <td>
       <strong>${esc(u.firstName)} ${esc(u.lastName)}</strong><br>
       <span class="muted">${esc(u.email)}</span><br>
@@ -224,6 +224,7 @@ function regRow(r) {
     </td>
     <td>${esc(r.event.name)}</td>
     <td>${r.team ? esc(r.team.name) + `<br><span class="muted">${esc(r.team.code)}${r.team.isLeader ? " · leader" : ""}</span>` : `<span class="muted">solo</span>`}</td>
+    <td>${r.transactionId ? `<code>${esc(r.transactionId)}</code>` : `<span class="muted">—</span>`}</td>
     <td>${imgCell(r.paymentScreenshotUrl, "payment")}</td>
     <td>${imgCell(u.idCardUrl, "id card")}</td>
     <td>

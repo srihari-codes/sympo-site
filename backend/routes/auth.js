@@ -135,6 +135,7 @@ router.get('/me', authenticateToken, (req, res) => {
       id: registration.id,
       eventId: registration.event_id,
       paymentScreenshotUrl: registration.payment_screenshot_url,
+      transactionId: registration.transaction_id,
       status: registration.status,
       createdAt: registration.created_at,
     } : null,

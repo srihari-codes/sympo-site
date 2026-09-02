@@ -1,0 +1,83 @@
+/* Diagnostic surface, not decoration: legible over anything, and it sits above
+   the modal layer so a modal crash is still readable. */
+.eb {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(6, 5, 4, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  &__panel {
+    width: 100%;
+    max-width: 760px;
+    max-height: 86vh;
+    overflow-y: auto;
+    padding: 32px 34px;
+    border: 1px solid rgba(201, 168, 76, 0.4);
+    border-radius: 6px;
+    background: rgba(16, 13, 9, 0.96);
+    color: #f7eed7;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  &__tag {
+    margin: 0 0 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2.6px;
+    text-transform: uppercase;
+    color: rgba(201, 168, 76, 0.75);
+  }
+
+  &__message {
+    margin: 0 0 20px;
+    font-size: clamp(15px, 1.4vw, 20px);
+    line-height: 1.45;
+    font-weight: 700;
+    color: #ffb4a2;
+    word-break: break-word;
+  }
+
+  &__stack {
+    margin: 0 0 20px;
+    padding: 16px;
+    max-height: 34vh;
+    overflow: auto;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.55);
+    font-size: 12px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.72);
+    white-space: pre-wrap;
+  }
+
+  &__hint {
+    margin: 0 0 22px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: rgba(184, 192, 204, 0.85);
+  }
+
+  &__close {
+    padding: 11px 26px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: #f7eed7;
+    background: rgba(201, 168, 76, 0.14);
+    border: 1px solid rgba(201, 168, 76, 0.55);
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(201, 168, 76, 0.26);
+    }
+  }
+}

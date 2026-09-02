@@ -41,6 +41,7 @@ export function initDb() {
       user_id INTEGER UNIQUE NOT NULL,
       event_id TEXT NOT NULL,
       payment_screenshot_url TEXT NOT NULL,
+      transaction_id TEXT,
       status TEXT DEFAULT 'pending',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -65,6 +66,24 @@ export function initDb() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
+
+  // ── Migrations ───────────────────────────────────────────────────────────
+  // Databases created before the payment-reference field exist in the wild
+  // (the Docker volume survives rebuilds), and CREATE TABLE IF NOT EXISTS is a
+  // no-op on them. Add the column only when it is genuinely missing.
+  const regColumns = db.prepare('PRAGMA table_info(registrations)').all().map((c) => c.name);
+  if (!regColumns.includes('transaction_id')) {
+    db.exec('ALTER TABLE registrations ADD COLUMN transaction_id TEXT');
+    console.log('↳ migration: added registrations.transaction_id');
+  }
+
+  // A bank reference pays for exactly one registration — this is what stops the
+  // same UTR (and the same screenshot) being reused from a second account.
+  // Legacy rows hold NULL, and SQLite lets NULL repeat under a UNIQUE index.
+  db.exec(
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_registrations_transaction_id ON registrations(transaction_id)'
+  );
+
   console.log('✅ SQLite Database initialized successfully.');
 }
 

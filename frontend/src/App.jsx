@@ -7,6 +7,7 @@ import HeroOverlay from "./components/HeroOverlay/HeroOverlay";
 import AudioManager from "./components/AudioManager/AudioManager";
 import { useExperienceStore } from "./stores/experienceStore";
 import { useAuthStore } from "./stores/authStore";
+import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 
 function App() {
   const { isExperienceReady } = useExperienceStore();
@@ -21,8 +22,12 @@ function App() {
       <LoadingScreen />
       <AudioManager />
       <HeroOverlay visible={isExperienceReady} />
-      <Modal />
-      <Experience />
+      <ErrorBoundary label="Modal">
+        <Modal />
+      </ErrorBoundary>
+      <ErrorBoundary label="3D scene">
+        <Experience />
+      </ErrorBoundary>
     </>
   );
 }

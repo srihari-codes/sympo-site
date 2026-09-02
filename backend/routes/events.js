@@ -1,4 +1,5 @@
 import express from 'express';
+import fs from 'fs';
 import db from '../db.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
@@ -55,12 +56,24 @@ router.post(
   authenticateToken,
   upload.single('payment_screenshot'),
   (req, res) => {
+    // Multer has already written the upload to disk by the time this runs, so
+    // every rejection below has to bin it — otherwise failed attempts silently
+    // fill the uploads volume on a 1 GB box.
+    const reject = (status, body) => {
+      if (req.file?.path) {
+        fs.unlink(req.file.path, (err) => {
+          if (err) console.error('Failed to remove rejected upload:', req.file.path, err.message);
+        });
+      }
+      return res.status(status).json(body);
+    };
+
     try {
       const user = req.user;
 
       // 1. Check onboarding status
       if (!user.is_onboarded) {
-        return res.status(400).json({ error: 'You must complete onboarding before registering for an event.' });
+        return reject(400, { error: 'You must complete onboarding before registering for an event.' });
       }
 
       // 2. Enforce 1 event registration per user rule
@@ -68,19 +81,19 @@ router.post(
       if (existingReg) {
         const registeredEvent = HARDCODED_EVENTS.find((e) => e.id === existingReg.event_id);
         const eventName = registeredEvent ? registeredEvent.name : existingReg.event_id;
-        return res.status(400).json({
+        return reject(400, {
           error: `You are already registered for '${eventName}'. Users can register for only 1 event.`,
           existingRegistration: existingReg,
         });
       }
 
-      const { event_id } = req.body;
+      const { event_id, transaction_id } = req.body;
       const file = req.file;
 
       // 3. Validate event ID
       const eventExists = HARDCODED_EVENTS.some((e) => e.id === event_id);
       if (!event_id || !eventExists) {
-        return res.status(400).json({ error: 'Invalid event selected. Please select a valid symposium event.' });
+        return reject(400, { error: 'Invalid event selected. Please select a valid symposium event.' });
       }
 
       // 4. Validate payment screenshot upload
@@ -88,13 +101,32 @@ router.post(
         return res.status(400).json({ error: 'Payment screenshot image is required to complete registration.' });
       }
 
+      // 5. Validate the bank reference / transaction ID
+      const transactionId = String(transaction_id || '').trim();
+      if (!transactionId) {
+        return reject(400, { error: 'Reference ID / Transaction ID is required to complete registration.' });
+      }
+      if (transactionId.length < 6 || transactionId.length > 40) {
+        return reject(400, { error: 'Reference ID / Transaction ID must be between 6 and 40 characters.' });
+      }
+
+      // Same reference twice means a screenshot is being reused across accounts.
+      const duplicate = db
+        .prepare('SELECT id FROM registrations WHERE transaction_id = ?')
+        .get(transactionId);
+      if (duplicate) {
+        return reject(409, {
+          error: 'That Reference ID / Transaction ID has already been used for another registration.',
+        });
+      }
+
       const paymentScreenshotUrl = `/uploads/${file.filename}`;
 
-      // 5. Insert registration
+      // 6. Insert registration
       const result = db.prepare(`
-        INSERT INTO registrations (user_id, event_id, payment_screenshot_url, status)
-        VALUES (?, ?, ?, 'pending')
-      `).run(user.id, event_id, paymentScreenshotUrl);
+        INSERT INTO registrations (user_id, event_id, payment_screenshot_url, transaction_id, status)
+        VALUES (?, ?, ?, ?, 'pending')
+      `).run(user.id, event_id, paymentScreenshotUrl, transactionId);
 
       const registration = db.prepare('SELECT * FROM registrations WHERE id = ?').get(result.lastInsertRowid);
 
@@ -104,13 +136,14 @@ router.post(
           id: registration.id,
           eventId: registration.event_id,
           paymentScreenshotUrl: registration.payment_screenshot_url,
+          transactionId: registration.transaction_id,
           status: registration.status,
           createdAt: registration.created_at,
         },
       });
     } catch (error) {
       console.error('Registration error:', error);
-      res.status(500).json({ error: 'Failed to register for event: ' + error.message });
+      reject(500, { error: 'Failed to register for event: ' + error.message });
     }
   }
 );
@@ -133,6 +166,7 @@ router.get('/my-registration', authenticateToken, (req, res) => {
       eventId: registration.event_id,
       eventDetails,
       paymentScreenshotUrl: registration.payment_screenshot_url,
+      transactionId: registration.transaction_id,
       status: registration.status,
       createdAt: registration.created_at,
     },

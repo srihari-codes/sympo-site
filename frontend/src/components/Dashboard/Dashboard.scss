@@ -386,8 +386,14 @@ $ui-font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       font-size: 15px;
       color: $cream;
       word-break: break-word;
-      user-select: all;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+  }
+
+  &__value {
+    user-select: all;
   }
 
   @media (max-width: 480px) {
@@ -395,6 +401,39 @@ $ui-font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       grid-template-columns: 1fr;
       gap: 2px;
     }
+  }
+}
+
+.dash-copy {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid rgba($gold, 0.28);
+  border-radius: 6px;
+  background: rgba($gold, 0.06);
+  color: rgba($gold, 0.9);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+
+  &:hover {
+    background: rgba($gold, 0.16);
+    border-color: rgba($gold, 0.5);
+    color: $gold;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba($gold, 0.6);
+    outline-offset: 2px;
+  }
+
+  &.is-copied {
+    border-color: rgba(#4ade80, 0.6);
+    background: rgba(#4ade80, 0.14);
+    color: #4ade80;
   }
 }
 

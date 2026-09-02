@@ -1,0 +1,4 @@
+# core.autocrlf=true rewrites LF to CRLF on Windows checkouts. Shell scripts
+# copied into Linux images must stay LF — a CRLF shebang makes the kernel look
+# for "/bin/sh\r" and the container dies with exit 127.
+*.sh text eol=lf
