@@ -123,8 +123,6 @@ export const modalContent = {
   },
   staff_coordinators: {
     title: "Faculty",
-    link: "https://zyverse.whitehatians.in",
-    linkText: "Contact the Department",
     // Every field below is a bracketed placeholder, and portraits are null so
     // nothing renders a broken image before the real assets land.
     faculty: [
@@ -298,7 +296,7 @@ export const modalContent = {
       {
         id: "team-siege",
         portrait: "/images/team/siege.jpg",
-        name: "Ragavi",
+        name: "Rakavi",
         designation: "Event Organizer — Siege of Servers",
       },
       {
