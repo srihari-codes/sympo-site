@@ -1,0 +1,194 @@
+/* ══ Team showcase — Three.js particle transition ═════════════════════════
+   Canvas + info sit inside a sticky stage driven by vertical scroll-snap.
+   Follows the same structural pattern as FacultyShowcase and the event deck
+   so scrolling feels identical across all full-screen modal experiences. */
+
+$gold: #c9a84c;
+$gold-lit: #f0d68a;
+$parchment: #f7eed7;
+$muted: #b8c0cc;
+
+.ts {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.ts__run {
+  position: relative;
+}
+
+.ts__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  /* Pulled out of flow so steps alone define the scroll length. */
+  margin-bottom: -100vh;
+  margin-bottom: -100dvh;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* An explicit row matters: the canvas is sized in JS from its wrapper, so
+     if the row were content-sized the two would size each other in a loop
+     and the canvas would blow out past the column. */
+  grid-template-rows: minmax(0, 1fr);
+  align-items: center;
+  gap: 4vw;
+  padding: 80px 5vw;
+}
+
+.ts__canvas-wrap {
+  width: 100%;
+  height: 100%;
+  /* Grid/flex items default to min-*: auto, which lets an oversized canvas
+     push the track wider than the screen. */
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  canvas {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+
+/* ── Info panel — fades in/out with the transition ── */
+.ts__info {
+  max-width: 52ch;
+  opacity: 0;
+  transform: translate3d(0, 24px, 0);
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+
+  &.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.ts__counter {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: rgba($gold, 0.75);
+  margin-bottom: 18px;
+}
+
+.ts__total {
+  color: rgba($gold, 0.38);
+}
+
+.ts__name {
+  font-size: clamp(28px, 4vw, 76px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.5px;
+  color: #fff;
+  margin: 0 0 14px;
+}
+
+.ts__role {
+  font-size: clamp(14px, 1.3vw, 22px);
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: $gold-lit;
+  margin: 0 0 8px;
+}
+
+.ts__dept {
+  font-size: clamp(12px, 1vw, 17px);
+  letter-spacing: 1.4px;
+  color: $muted;
+  margin: 0;
+}
+
+/* One snap step per member. mandatory + stop:always = one gesture advances
+   exactly one member. */
+.ts__step {
+  height: 100vh;
+  height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  pointer-events: none;
+}
+
+/* ══ Mobile ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .ts__stage {
+    /* Portrait above, copy below. The portrait row takes the slack; the copy
+       row takes exactly what it needs, so the text can never be pushed off
+       the bottom on a short phone. */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 20px;
+    padding: 60px 20px 40px;
+  }
+
+  .ts__info {
+    max-width: none;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .ts__name {
+    font-size: clamp(24px, 7.4vw, 38px);
+  }
+
+  .ts__role {
+    font-size: clamp(12px, 3.3vw, 15px);
+    letter-spacing: 1.4px;
+  }
+
+  .ts__dept {
+    font-size: clamp(11px, 2.8vw, 14px);
+  }
+}
+
+/* ══ Short and wide — a phone on its side ═════════════════════════════════
+   Stacking starves the portrait vertically (it gets ~160px of a 390px
+   screen), so go back to portrait-beside-copy and use the spare width. */
+@media (max-width: 900px) and (max-height: 520px) {
+  .ts__stage {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 4vw;
+    padding: 34px 20px;
+  }
+
+  .ts__info {
+    text-align: left;
+  }
+
+  .ts__counter {
+    margin-bottom: 10px;
+  }
+
+  .ts__name {
+    font-size: clamp(20px, 4.6vw, 32px);
+    margin-bottom: 8px;
+  }
+}
+
+/* ══ Reduced motion ═══════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .ts__info {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -4,6 +4,7 @@ import { useModalStore } from "../../stores/useModalStore";
 import { modalContent } from "../../data/modalContent";
 import TimelineJourney from "./TimelineJourney";
 import FacultyShowcase from "./FacultyShowcase";
+import TeamShowcase from "./TeamShowcase";
 import Dashboard from "../Dashboard/Dashboard";
 
 const Modal = () => {
@@ -24,6 +25,9 @@ const Modal = () => {
   const isEventDeck = Boolean(content?.eventList);
   const isTimeline = Boolean(content?.timeline);
   const isFaculty = Boolean(content?.faculty);
+  // The Zyverse team runs the WebGL fragment transition; the faculty list
+  // keeps the original showcase.
+  const isTeam = isFaculty && modalID === "zyverse_team";
   // The user dashboard: login -> onboarding -> event -> team.
   const isDashboard = modalID === "dashboard";
   // Every modal is boxless now; this only distinguishes the ones that run
@@ -245,12 +249,16 @@ const Modal = () => {
         ) : isFaculty ? (
           <>
             <h2 className="modal-title modal-title--floating">{title}</h2>
-            <FacultyShowcase
-              faculty={faculty}
-              finale={finale}
-              link={link}
-              linkText={linkText}
-            />
+            {isTeam ? (
+              <TeamShowcase faculty={faculty} />
+            ) : (
+              <FacultyShowcase
+                faculty={faculty}
+                finale={finale}
+                link={link}
+                linkText={linkText}
+              />
+            )}
           </>
         ) : (
           <div
