@@ -1,7 +1,18 @@
-// Loads .env BEFORE any other module reads process.env.
-// ESM evaluates imports top-to-bottom, so this must be the FIRST import in
-// server.js — otherwise routes/middleware that read process.env at module load
-// (JWT_SECRET, GOOGLE_CLIENT_ID, ADMIN_EMAILS, …) get undefined.
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load backend/.env
 dotenv.config();
+
+// Fallback to root .env if SMTP_USER is not in environment
+if (!process.env.SMTP_USER) {
+  const rootEnv = path.join(__dirname, '../.env');
+  if (fs.existsSync(rootEnv)) {
+    dotenv.config({ path: rootEnv });
+  }
+}
