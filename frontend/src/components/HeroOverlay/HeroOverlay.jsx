@@ -3,7 +3,7 @@ import "./HeroOverlay.scss";
 import { useExperienceStore } from "../../stores/experienceStore";
 import { useModalStore } from "../../stores/useModalStore";
 import { useAudioStore } from "../../stores/audioStore";
-import HeroDragon from "../HeroDragon/HeroDragon";
+import HeroDragon, { DRAGON_TOTAL_MS } from "../HeroDragon/HeroDragon";
 
 /* ── Countdown target date ── */
 const TARGET_DATE = new Date("2026-09-12T09:00:00");
@@ -115,7 +115,7 @@ const HeroOverlay = ({ visible = true }) => {
   useEffect(() => {
     if (!visible || dragonLanded) return;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const id = window.setTimeout(() => setDragonLanded(true), reduce ? 200 : 5500);
+    const id = window.setTimeout(() => setDragonLanded(true), reduce ? 200 : DRAGON_TOTAL_MS + 1200);
     return () => window.clearTimeout(id);
   }, [visible, dragonLanded, setDragonLanded]);
 
