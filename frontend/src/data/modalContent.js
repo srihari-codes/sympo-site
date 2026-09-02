@@ -202,8 +202,6 @@ export const modalContent = {
   },
   zyverse_team: {
     title: "Zyverse Team",
-    link: "https://zyverse.whitehatians.in",
-    linkText: "Contact Coordinators",
     faculty: [
       // ── Core Team (photos needed) ──
       {
@@ -319,10 +317,5 @@ export const modalContent = {
         designation: "Purchase Committee",
       },
     ],
-    finale: {
-      heading: "Organized By",
-      vision: "Department of Cyber Security, SRM Valliammai Engineering College",
-      mission: "In association with SRMVEC CSI Student Branch, WhiteHatians Club & IQAC.",
-    },
   },
 };
