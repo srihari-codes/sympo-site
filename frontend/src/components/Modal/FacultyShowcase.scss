@@ -383,10 +383,12 @@ $muted: #b8c0cc;
     transform: translate3d(calc(var(--d) * 20px), 0, 0);
 
     &__frame {
-      /* Height-led here too, so it scales with the phone rather than sitting
-         at a fixed width, but capped so the copy below always has room. */
-      height: min(34vh, 300px);
-      width: auto;
+      /* Width-led on phones: the plate spans most of the column so it never
+         reads as a thumbnail, but stops well short of full-bleed and is capped
+         so the name / role / dept below always clear the fold. */
+      width: min(78vw, 340px);
+      height: auto;
+      max-height: 62vh;
       margin: 0 auto;
     }
   }
@@ -556,7 +558,7 @@ $muted: #b8c0cc;
     }
 
     &__portrait {
-      max-width: 190px;
+      max-width: 260px;
     }
   }
 }
@@ -570,7 +572,9 @@ $muted: #b8c0cc;
   }
 
   .fx-portrait__frame {
-    height: min(22vh, 190px);
+    width: min(56vw, 240px);
+    height: auto;
+    max-height: 40vh;
   }
 
   .fx-info {
