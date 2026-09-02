@@ -76,10 +76,10 @@ router.get('/registrations', (req, res) => {
   const rows = db
     .prepare(
       `SELECT r.id, r.event_id, r.payment_screenshot_url, r.transaction_id, r.status, r.created_at,
-              u.id AS user_id, u.first_name, u.last_name, u.email, u.phone_number,
+              u.id AS user_id, u.first_name, u.last_name, u.email, u.phone_number, u.college,
               u.id_card_url, u.profile_pic_url, u.is_onboarded, u.mode,
               tm.first_name AS tm_first, tm.last_name AS tm_last, tm.phone_number AS tm_phone,
-              tm.email AS tm_email, tm.id_card_url AS tm_id_card
+              tm.email AS tm_email, tm.college AS tm_college, tm.id_card_url AS tm_id_card
        FROM registrations r
        JOIN users u ON u.id = r.user_id
        LEFT JOIN teammates tm ON tm.user_id = u.id
@@ -102,6 +102,7 @@ router.get('/registrations', (req, res) => {
         lastName: r.last_name,
         email: r.email,
         phoneNumber: r.phone_number,
+        college: r.college || null,
         idCardUrl: r.id_card_url,
         profilePicUrl: r.profile_pic_url,
         isOnboarded: Boolean(r.is_onboarded),
@@ -112,6 +113,7 @@ router.get('/registrations', (req, res) => {
             lastName: r.tm_last,
             phoneNumber: r.tm_phone,
             email: r.tm_email,
+            college: r.tm_college || null,
             idCardUrl: r.tm_id_card,
           }
         : null,
@@ -191,7 +193,7 @@ router.get('/users', (req, res) => {
       `SELECT u.*,
               r.event_id AS reg_event_id, r.status AS reg_status,
               tm.first_name AS tm_first, tm.last_name AS tm_last, tm.phone_number AS tm_phone,
-              tm.email AS tm_email, tm.id_card_url AS tm_id_card
+              tm.email AS tm_email, tm.college AS tm_college, tm.id_card_url AS tm_id_card
        FROM users u
        LEFT JOIN registrations r ON r.user_id = u.id
        LEFT JOIN teammates tm ON tm.user_id = u.id
@@ -206,6 +208,7 @@ router.get('/users', (req, res) => {
       lastName: u.last_name,
       email: u.email,
       phoneNumber: u.phone_number,
+      college: u.college || null,
       idCardUrl: u.id_card_url,
       profilePicUrl: u.profile_pic_url,
       mode: u.mode || null,
@@ -220,6 +223,7 @@ router.get('/users', (req, res) => {
             lastName: u.tm_last,
             phoneNumber: u.tm_phone,
             email: u.tm_email,
+            college: u.tm_college || null,
             idCardUrl: u.tm_id_card,
           }
         : null,
@@ -235,10 +239,10 @@ router.get('/users', (req, res) => {
 router.get('/teams', (req, res) => {
   const rows = db
     .prepare(
-      `SELECT u.id AS user_id, u.first_name, u.last_name, u.email, u.phone_number,
+      `SELECT u.id AS user_id, u.first_name, u.last_name, u.email, u.phone_number, u.college,
               u.id_card_url, u.created_at,
               tm.first_name AS tm_first, tm.last_name AS tm_last, tm.phone_number AS tm_phone,
-              tm.email AS tm_email, tm.id_card_url AS tm_id_card,
+              tm.email AS tm_email, tm.college AS tm_college, tm.id_card_url AS tm_id_card,
               r.event_id, r.status AS reg_status
        FROM teammates tm
        JOIN users u ON u.id = tm.user_id
@@ -265,6 +269,7 @@ router.get('/teams', (req, res) => {
           lastName: r.last_name,
           email: r.email,
           phoneNumber: r.phone_number,
+          college: r.college || null,
           idCardUrl: r.id_card_url,
           isLeader: true,
         },
@@ -273,6 +278,7 @@ router.get('/teams', (req, res) => {
           lastName: r.tm_last,
           email: r.tm_email,
           phoneNumber: r.tm_phone,
+          college: r.tm_college || null,
           idCardUrl: r.tm_id_card,
           isLeader: false,
         },

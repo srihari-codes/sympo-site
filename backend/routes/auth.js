@@ -67,6 +67,7 @@ router.post('/google', async (req, res) => {
         firstName: user.first_name,
         lastName: user.last_name,
         phoneNumber: user.phone_number,
+        college: user.college || null,
         idCardUrl: user.id_card_url,
         profilePicUrl: user.profile_pic_url,
         mode: user.mode || null,
@@ -101,6 +102,7 @@ router.get('/me', authenticateToken, (req, res) => {
       firstName: user.first_name,
       lastName: user.last_name,
       phoneNumber: user.phone_number,
+      college: user.college || null,
       idCardUrl: user.id_card_url,
       profilePicUrl: user.profile_pic_url,
       mode: user.mode || null,
@@ -119,6 +121,7 @@ router.get('/me', authenticateToken, (req, res) => {
       lastName: teammate.last_name,
       phoneNumber: teammate.phone_number,
       email: teammate.email,
+      college: teammate.college || null,
       idCardUrl: teammate.id_card_url,
     } : null,
   });

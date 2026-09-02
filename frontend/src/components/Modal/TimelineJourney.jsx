@@ -412,9 +412,9 @@ const Journey = ({ timeline }) => {
         ).toFixed(1)}px, ${(t * 150).toFixed(1)}px, 0)`;
       }
       if (progressRef.current) {
-        progressRef.current.style.transform = `translateX(${(t * 100).toFixed(
-          2
-        )}%)`;
+        // % here is resolved against the track, not the 7px dot — hence `left`
+        // rather than `translateX`, which would only shift it by its own width.
+        progressRef.current.style.left = `${(t * 100).toFixed(2)}%`;
       }
     };
 

@@ -24,6 +24,7 @@ function serializeUser(u) {
     firstName: u.first_name,
     lastName: u.last_name,
     phoneNumber: u.phone_number,
+    college: u.college || null,
     idCardUrl: u.id_card_url,
     profilePicUrl: u.profile_pic_url,
     mode: u.mode || null,
@@ -38,6 +39,7 @@ function serializeTeammate(t) {
     lastName: t.last_name,
     phoneNumber: t.phone_number,
     email: t.email,
+    college: t.college || null,
     idCardUrl: t.id_card_url,
   };
 }
@@ -78,15 +80,19 @@ router.post(
         last_name,
         phone_number,
         email,
+        college: collegeRaw,
         mode: requestedMode,
         teammate_first_name,
         teammate_last_name,
         teammate_phone_number,
         teammate_email,
+        teammate_college,
       } = req.body;
 
-      if (!first_name || !last_name || !phone_number || !email) {
-        return reject(400, 'First name, last name, phone number, and email are required.');
+      const college = String(collegeRaw || '').trim();
+
+      if (!first_name || !last_name || !phone_number || !email || !college) {
+        return reject(400, 'First name, last name, phone number, email, and college are required.');
       }
 
       const existingTeammate = db
@@ -119,9 +125,10 @@ router.post(
         const tLast = String(teammate_last_name || '').trim();
         const tPhone = String(teammate_phone_number || '').trim();
         const tEmail = String(teammate_email || '').trim();
+        const tCollege = String(teammate_college || '').trim();
 
-        if (!tFirst || !tLast || !tPhone || !tEmail) {
-          return reject(400, "Your teammate's name, phone number, and email are all required.");
+        if (!tFirst || !tLast || !tPhone || !tEmail || !tCollege) {
+          return reject(400, "Your teammate's name, phone number, email, and college are all required.");
         }
 
         let teammateIdCardUrl = existingTeammate?.id_card_url || null;
@@ -133,6 +140,7 @@ router.post(
           last_name: tLast,
           phone_number: tPhone,
           email: tEmail,
+          college: tCollege,
           id_card_url: teammateIdCardUrl,
         };
       }
@@ -140,21 +148,22 @@ router.post(
       const save = db.transaction(() => {
         db.prepare(`
           UPDATE users
-          SET first_name = ?, last_name = ?, phone_number = ?, email = ?,
+          SET first_name = ?, last_name = ?, phone_number = ?, email = ?, college = ?,
               id_card_url = ?, profile_pic_url = ?, mode = ?,
               is_onboarded = 1, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?
-        `).run(first_name, last_name, phone_number, email, idCardUrl, profilePicUrl, mode, req.user.id);
+        `).run(first_name, last_name, phone_number, email, college, idCardUrl, profilePicUrl, mode, req.user.id);
 
         if (mode === 'team') {
           db.prepare(`
-            INSERT INTO teammates (user_id, first_name, last_name, phone_number, email, id_card_url)
-            VALUES (@user_id, @first_name, @last_name, @phone_number, @email, @id_card_url)
+            INSERT INTO teammates (user_id, first_name, last_name, phone_number, email, college, id_card_url)
+            VALUES (@user_id, @first_name, @last_name, @phone_number, @email, @college, @id_card_url)
             ON CONFLICT(user_id) DO UPDATE SET
               first_name = excluded.first_name,
               last_name = excluded.last_name,
               phone_number = excluded.phone_number,
               email = excluded.email,
+              college = excluded.college,
               id_card_url = excluded.id_card_url,
               updated_at = CURRENT_TIMESTAMP
           `).run({ user_id: req.user.id, ...teammate });

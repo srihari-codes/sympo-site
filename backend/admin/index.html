@@ -225,17 +225,18 @@ function viewRegistrations() {
 function regRow(r) {
   const u = r.user;
   const tm = r.teammate;
-  const search = [u.firstName, u.lastName, u.email, r.event.name, r.transactionId,
-    tm && tm.firstName, tm && tm.lastName, tm && tm.email].filter(Boolean).join(" ").toLowerCase();
+  const search = [u.firstName, u.lastName, u.email, u.college, r.event.name, r.transactionId,
+    tm && tm.firstName, tm && tm.lastName, tm && tm.email, tm && tm.college].filter(Boolean).join(" ").toLowerCase();
   return `<tr data-search="${esc(search)}">
     <td>
       <strong>${esc(u.firstName)} ${esc(u.lastName)}</strong><br>
       <span class="muted">${esc(u.email)}</span><br>
-      <span class="muted">${esc(u.phoneNumber || "no phone")}</span>
+      <span class="muted">${esc(u.phoneNumber || "no phone")}</span><br>
+      <span class="muted">${esc(u.college || "no college")}</span>
     </td>
     <td>${esc(r.event.name)}</td>
     <td>${r.mode === "team" && tm
-      ? `<strong>team</strong><br>${esc(tm.firstName)} ${esc(tm.lastName)}<br><span class="muted">${esc(tm.email)} · ${esc(tm.phoneNumber || "no phone")}</span>`
+      ? `<strong>team</strong><br>${esc(tm.firstName)} ${esc(tm.lastName)}<br><span class="muted">${esc(tm.email)} · ${esc(tm.phoneNumber || "no phone")}</span><br><span class="muted">${esc(tm.college || "no college")}</span>`
       : `<span class="muted">solo</span>`}</td>
     <td>${r.transactionId ? `<code>${esc(r.transactionId)}</code>` : `<span class="muted">—</span>`}</td>
     <td>${imgCell(r.paymentScreenshotUrl, "payment")}</td>
@@ -265,15 +266,15 @@ function viewUsers() {
 }
 function userRow(u) {
   const tm = u.teammate;
-  return `<tr data-search="${esc((u.firstName+" "+u.lastName+" "+u.email+" "+(tm ? tm.firstName+" "+tm.lastName+" "+tm.email : "")).toLowerCase())}">
+  return `<tr data-search="${esc((u.firstName+" "+u.lastName+" "+u.email+" "+(u.college||"")+" "+(tm ? tm.firstName+" "+tm.lastName+" "+tm.email+" "+(tm.college||"") : "")).toLowerCase())}">
     <td>${imgCell(u.profilePicUrl, "profile")}</td>
     <td><strong>${esc(u.firstName || "")} ${esc(u.lastName || "")}</strong></td>
-    <td>${esc(u.email)}<br><span class="muted">${esc(u.phoneNumber || "—")}</span></td>
+    <td>${esc(u.email)}<br><span class="muted">${esc(u.phoneNumber || "—")}</span><br><span class="muted">${esc(u.college || "—")}</span></td>
     <td>${u.isOnboarded ? "✓" : `<span class="muted">no</span>`}</td>
     <td>${u.mode ? esc(u.mode) : `<span class="muted">—</span>`}</td>
     <td>${imgCell(u.idCardUrl, "id card")}</td>
     <td>${u.registration ? esc(u.registration.eventName) + `<br><span class="badge ${u.registration.status}">${u.registration.status}</span>` : `<span class="muted">—</span>`}</td>
-    <td>${tm ? esc(tm.firstName + " " + tm.lastName) + `<br><span class="muted">${esc(tm.email)}</span>` : `<span class="muted">—</span>`}</td>
+    <td>${tm ? esc(tm.firstName + " " + tm.lastName) + `<br><span class="muted">${esc(tm.email)}</span><br><span class="muted">${esc(tm.college || "—")}</span>` : `<span class="muted">—</span>`}</td>
     <td class="muted">${esc((u.createdAt || "").slice(0, 10))}</td>
   </tr>`;
 }
@@ -284,11 +285,12 @@ function viewTeams() {
     <div class="team">
       <h3>${esc(t.name)}</h3>
       <div class="muted">${esc(t.event.name)}${t.registrationStatus ? ` · <span class="badge ${t.registrationStatus}">${t.registrationStatus}</span>` : ""} · created ${esc((t.createdAt||"").slice(0,10))}</div>
-      <table style="margin-top:10px;"><thead><tr><th>Member</th><th>Email</th><th>Phone</th><th>Role</th><th>ID card</th></tr></thead><tbody>
+      <table style="margin-top:10px;"><thead><tr><th>Member</th><th>Email</th><th>Phone</th><th>College</th><th>Role</th><th>ID card</th></tr></thead><tbody>
         ${t.members.map((m) => `<tr>
           <td>${esc(m.firstName || "")} ${esc(m.lastName || "")}</td>
           <td>${esc(m.email || "—")}</td>
           <td>${esc(m.phoneNumber || "—")}</td>
+          <td>${esc(m.college || "—")}</td>
           <td>${m.isLeader ? "registrar" : "teammate"}</td>
           <td>${imgCell(m.idCardUrl, "id card")}</td>
         </tr>`).join("")}

@@ -216,12 +216,14 @@ const OnboardingStep = () => {
     last_name: user?.lastName || "",
     phone_number: user?.phoneNumber || "",
     email: user?.email || "",
+    college: user?.college || "",
   });
   const [mate, setMate] = useState({
     first_name: "",
     last_name: "",
     phone_number: "",
     email: "",
+    college: "",
   });
   const [idCard, setIdCard] = useState(null);
   const [profilePic, setProfilePic] = useState(null);
@@ -237,8 +239,14 @@ const OnboardingStep = () => {
     setError(null);
 
     if (!mode) return setError("Choose solo or team to continue.");
-    if (!form.first_name || !form.last_name || !form.phone_number || !form.email) {
-      return setError("All of your details are required.");
+    if (
+      !form.first_name ||
+      !form.last_name ||
+      !form.phone_number ||
+      !form.email ||
+      !form.college.trim()
+    ) {
+      return setError("All of your details, including your college, are required.");
     }
     if (!idCard && !user?.idCardUrl) {
       return setError("Please upload a photo of your college ID card.");
@@ -247,8 +255,14 @@ const OnboardingStep = () => {
       return setError("Please upload a profile picture.");
     }
     if (mode === "team") {
-      if (!mate.first_name || !mate.last_name || !mate.phone_number || !mate.email) {
-        return setError("Your teammate's details are all required.");
+      if (
+        !mate.first_name ||
+        !mate.last_name ||
+        !mate.phone_number ||
+        !mate.email ||
+        !mate.college.trim()
+      ) {
+        return setError("Your teammate's details, including their college, are all required.");
       }
       if (!mateIdCard) {
         return setError("Please upload a photo of your teammate's college ID card.");
@@ -261,6 +275,7 @@ const OnboardingStep = () => {
     fd.append("last_name", form.last_name);
     fd.append("phone_number", form.phone_number);
     fd.append("email", form.email);
+    fd.append("college", form.college.trim());
     if (idCard) fd.append("id_card", idCard);
     if (profilePic) fd.append("profile_pic", profilePic);
 
@@ -269,6 +284,7 @@ const OnboardingStep = () => {
       fd.append("teammate_last_name", mate.last_name);
       fd.append("teammate_phone_number", mate.phone_number);
       fd.append("teammate_email", mate.email);
+      fd.append("teammate_college", mate.college.trim());
       if (mateIdCard) fd.append("teammate_id_card", mateIdCard);
     }
 
@@ -341,6 +357,15 @@ const OnboardingStep = () => {
         </Field>
       </div>
 
+      <Field label="College / institution">
+        <input
+          value={form.college}
+          onChange={set("college")}
+          placeholder="e.g. SRM Valliammai Engineering College"
+          required
+        />
+      </Field>
+
       <div className="dash-grid-2">
         <FileField
           label="College ID card"
@@ -392,6 +417,15 @@ const OnboardingStep = () => {
               />
             </Field>
           </div>
+
+          <Field label="Teammate college / institution">
+            <input
+              value={mate.college}
+              onChange={setMateField("college")}
+              placeholder="e.g. SRM Valliammai Engineering College"
+              required
+            />
+          </Field>
 
           <FileField
             label="Teammate's college ID card"
@@ -679,6 +713,12 @@ const TeammateCard = () => {
           <dt>Email</dt>
           <dd>{teammate.email}</dd>
         </div>
+        {teammate.college && (
+          <div className="dash-paydetails__row">
+            <dt>College</dt>
+            <dd>{teammate.college}</dd>
+          </div>
+        )}
       </dl>
       <p className="dash-field__hint">
         Locked in at registration. Contact the organisers if anything here is wrong.
@@ -719,6 +759,9 @@ const DashboardHome = () => {
             {user?.phoneNumber ? ` · ${user.phoneNumber}` : ""}
             {user?.mode ? ` · ${user.mode === "team" ? "Team of 2" : "Solo"}` : ""}
           </p>
+          {user?.college && (
+            <p className="dash-profile__meta">{user.college}</p>
+          )}
         </div>
         <button type="button" className="dash-btn dash-btn--ghost dash-btn--sm" onClick={logout}>
           Sign out

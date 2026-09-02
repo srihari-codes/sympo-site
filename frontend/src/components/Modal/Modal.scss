@@ -489,7 +489,9 @@
    Landscape posters (4:3) need a wider stage on small screens. */
 @media (max-width: 900px) {
   .modal-title--floating {
-    top: 18px;
+    /* Drop the heading down so it sits level with the close (X) button
+       rather than riding above it. */
+    top: 30px;
     left: 56px;
     right: 16px;
     letter-spacing: 2px;

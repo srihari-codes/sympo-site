@@ -31,6 +31,7 @@ export function initDb() {
       phone_number TEXT,
       id_card_url TEXT,
       profile_pic_url TEXT,
+      college TEXT,
       -- 'solo' | 'team'. Chosen at onboarding and never changed afterwards.
       mode TEXT,
       is_onboarded INTEGER DEFAULT 0,
@@ -47,6 +48,7 @@ export function initDb() {
       last_name TEXT NOT NULL,
       phone_number TEXT NOT NULL,
       email TEXT NOT NULL,
+      college TEXT,
       id_card_url TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -98,6 +100,16 @@ export function initDb() {
   if (!userColumns.includes('mode')) {
     db.exec('ALTER TABLE users ADD COLUMN mode TEXT');
     console.log('↳ migration: added users.mode');
+  }
+  if (!userColumns.includes('college')) {
+    db.exec('ALTER TABLE users ADD COLUMN college TEXT');
+    console.log('↳ migration: added users.college');
+  }
+
+  const teammateColumns = db.prepare('PRAGMA table_info(teammates)').all().map((c) => c.name);
+  if (teammateColumns.length && !teammateColumns.includes('college')) {
+    db.exec('ALTER TABLE teammates ADD COLUMN college TEXT');
+    console.log('↳ migration: added teammates.college');
   }
 
   // A bank reference pays for exactly one registration — this is what stops the
