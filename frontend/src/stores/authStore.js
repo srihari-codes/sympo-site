@@ -1,8 +1,9 @@
 // Auth + registration state for the Dashboard flow.
 //
-// One store holds everything the dashboard needs: the logged-in user, their
-// single event registration and their team. `refresh()` pulls all three from
-// GET /api/auth/me in one shot.
+// One store holds everything the dashboard needs: the logged-in user (which
+// carries their one-time solo/team `mode`), their single event registration
+// and — in team mode — the teammate they registered. `refresh()` pulls all
+// three from GET /api/auth/me in one shot.
 
 import { create } from "zustand";
 import { api, getToken, setToken } from "../lib/api";
@@ -12,7 +13,7 @@ export const useAuthStore = create((set, get) => ({
   status: "idle",
   user: null,
   registration: null,
-  team: null,
+  teammate: null,
   error: null,
 
   isLoggedIn: () => Boolean(get().user),
@@ -30,12 +31,12 @@ export const useAuthStore = create((set, get) => ({
         status: "ready",
         user: data.user,
         registration: data.registration || null,
-        team: data.team || null,
+        teammate: data.teammate || null,
       });
     } catch {
       // Expired/invalid token — drop it and start clean.
       setToken(null);
-      set({ status: "ready", user: null, registration: null, team: null, error: null });
+      set({ status: "ready", user: null, registration: null, teammate: null, error: null });
     }
   },
 
@@ -54,24 +55,24 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  /** Re-pull user + registration + team. */
+  /** Re-pull user + registration + teammate. */
   refresh: async () => {
     const data = await api.me();
     set({
       status: "ready",
       user: data.user,
       registration: data.registration || null,
-      team: data.team || null,
+      teammate: data.teammate || null,
     });
     return data;
   },
 
   setUser: (user) => set({ user }),
   setRegistration: (registration) => set({ registration }),
-  setTeam: (team) => set({ team }),
+  setTeammate: (teammate) => set({ teammate }),
 
   logout: () => {
     setToken(null);
-    set({ user: null, registration: null, team: null, error: null });
+    set({ user: null, registration: null, teammate: null, error: null });
   },
 }));

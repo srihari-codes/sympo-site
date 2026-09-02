@@ -4,8 +4,26 @@ import { useAuthStore } from "../../stores/authStore";
 import { api, assetUrl } from "../../lib/api";
 import GoogleSignInButton from "./GoogleSignInButton";
 
-/* Registration fee + payee bank details shown on the payment step. */
-const REGISTRATION_FEE = "₹150";
+/* Registration fee by participation mode + payee bank details for payment. */
+const FEE_BY_MODE = { solo: "₹150", team: "₹300" };
+const feeFor = (mode) => FEE_BY_MODE[mode] || FEE_BY_MODE.solo;
+
+/* The one-time solo/team choice made at onboarding. */
+const MODE_OPTIONS = [
+  {
+    id: "solo",
+    label: "Solo",
+    fee: FEE_BY_MODE.solo,
+    blurb: "Just you — one registration, one ID card.",
+  },
+  {
+    id: "team",
+    label: "Team of 2",
+    fee: FEE_BY_MODE.team,
+    blurb: "You and one teammate. You fill in both sets of details here.",
+  },
+];
+
 const PAYMENT_INFO = [
   { label: "Account name", value: "VALLIAMMAI ENGINEERING COLLEGE" },
   { label: "Bank", value: "City Union Bank Ltd" },
@@ -124,7 +142,7 @@ const FileField = ({ label, name, file, onChange, hint }) => (
 );
 
 const Stepper = ({ step }) => {
-  const steps = ["Sign in", "Profile", "Event", "Team"];
+  const steps = ["Sign in", "Profile", "Register", "Done"];
   return (
     <ol className="dash-stepper">
       {steps.map((label, i) => (
@@ -188,43 +206,71 @@ const OnboardingStep = () => {
   const user = useAuthStore((s) => s.user);
   const refresh = useAuthStore((s) => s.refresh);
 
+  // Only settable once. In practice this screen only renders pre-onboarding, so
+  // user.mode is null here — the guard just keeps a re-submit honest.
+  const modeLocked = Boolean(user?.mode);
+  const [mode, setMode] = useState(user?.mode || null);
+
   const [form, setForm] = useState({
     first_name: user?.firstName || "",
     last_name: user?.lastName || "",
     phone_number: user?.phoneNumber || "",
     email: user?.email || "",
   });
+  const [mate, setMate] = useState({
+    first_name: "",
+    last_name: "",
+    phone_number: "",
+    email: "",
+  });
   const [idCard, setIdCard] = useState(null);
   const [profilePic, setProfilePic] = useState(null);
+  const [mateIdCard, setMateIdCard] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const setMateField = (k) => (e) => setMate((m) => ({ ...m, [k]: e.target.value }));
 
   const submit = async (e) => {
     e.preventDefault();
     setError(null);
 
+    if (!mode) return setError("Choose solo or team to continue.");
     if (!form.first_name || !form.last_name || !form.phone_number || !form.email) {
-      setError("All fields are required.");
-      return;
+      return setError("All of your details are required.");
     }
     if (!idCard && !user?.idCardUrl) {
-      setError("Please upload a photo of your college ID card.");
-      return;
+      return setError("Please upload a photo of your college ID card.");
     }
     if (!profilePic && !user?.profilePicUrl) {
-      setError("Please upload a profile picture.");
-      return;
+      return setError("Please upload a profile picture.");
+    }
+    if (mode === "team") {
+      if (!mate.first_name || !mate.last_name || !mate.phone_number || !mate.email) {
+        return setError("Your teammate's details are all required.");
+      }
+      if (!mateIdCard) {
+        return setError("Please upload a photo of your teammate's college ID card.");
+      }
     }
 
     const fd = new FormData();
+    fd.append("mode", mode);
     fd.append("first_name", form.first_name);
     fd.append("last_name", form.last_name);
     fd.append("phone_number", form.phone_number);
     fd.append("email", form.email);
     if (idCard) fd.append("id_card", idCard);
     if (profilePic) fd.append("profile_pic", profilePic);
+
+    if (mode === "team") {
+      fd.append("teammate_first_name", mate.first_name);
+      fd.append("teammate_last_name", mate.last_name);
+      fd.append("teammate_phone_number", mate.phone_number);
+      fd.append("teammate_email", mate.email);
+      if (mateIdCard) fd.append("teammate_id_card", mateIdCard);
+    }
 
     setBusy(true);
     try {
@@ -238,10 +284,39 @@ const OnboardingStep = () => {
 
   return (
     <form className="dash-step" onSubmit={submit}>
-      <h3 className="dash-step__title">Complete your profile</h3>
+      <h3 className="dash-step__title">Complete your registration</h3>
       <p className="dash-step__lead">
-        We need a few details before you can register for an event.
+        First, choose how you&apos;re taking part. This is set once — solo and team
+        can&apos;t be switched afterwards.
       </p>
+
+      <div className="dash-modes">
+        {MODE_OPTIONS.map((opt) => (
+          <button
+            type="button"
+            key={opt.id}
+            className={`dash-mode${mode === opt.id ? " is-selected" : ""}`}
+            onClick={() => !modeLocked && setMode(opt.id)}
+            disabled={modeLocked && mode !== opt.id}
+            aria-pressed={mode === opt.id}
+          >
+            <span className="dash-mode__top">
+              <span className="dash-mode__label">{opt.label}</span>
+              <span className="dash-mode__fee">{opt.fee}</span>
+            </span>
+            <span className="dash-mode__blurb">{opt.blurb}</span>
+          </button>
+        ))}
+      </div>
+
+      {mode && (
+        <p className="dash-warn">
+          Registering <strong>{mode === "team" ? "as a team of 2" : "solo"}</strong> — the fee
+          will be <strong>{feeFor(mode)}</strong>, and this choice can&apos;t be changed later.
+        </p>
+      )}
+
+      <h4 className="dash-subhead">Your details</h4>
 
       <div className="dash-grid-2">
         <Field label="First name">
@@ -283,6 +358,50 @@ const OnboardingStep = () => {
         />
       </div>
 
+      {mode === "team" && (
+        <>
+          <h4 className="dash-subhead">Your teammate&apos;s details</h4>
+          <p className="dash-field__hint">
+            Your teammate doesn&apos;t sign in anywhere — enter everything for them here.
+          </p>
+
+          <div className="dash-grid-2">
+            <Field label="Teammate first name">
+              <input value={mate.first_name} onChange={setMateField("first_name")} required />
+            </Field>
+            <Field label="Teammate last name">
+              <input value={mate.last_name} onChange={setMateField("last_name")} required />
+            </Field>
+          </div>
+
+          <div className="dash-grid-2">
+            <Field label="Teammate phone number">
+              <input
+                value={mate.phone_number}
+                onChange={setMateField("phone_number")}
+                inputMode="tel"
+                required
+              />
+            </Field>
+            <Field label="Teammate email">
+              <input
+                value={mate.email}
+                onChange={setMateField("email")}
+                type="email"
+                required
+              />
+            </Field>
+          </div>
+
+          <FileField
+            label="Teammate's college ID card"
+            name="teammate_id_card"
+            file={mateIdCard}
+            onChange={setMateIdCard}
+          />
+        </>
+      )}
+
       {error && <p className="dash-error">{error}</p>}
 
       <button className="dash-btn" type="submit" disabled={busy}>
@@ -298,6 +417,8 @@ const OnboardingStep = () => {
 
 const RegisterStep = () => {
   const refresh = useAuthStore((s) => s.refresh);
+  const mode = useAuthStore((s) => s.user?.mode);
+  const fee = feeFor(mode);
   const [events, setEvents] = useState([]);
   const [phase, setPhase] = useState("event"); // "event" -> "payment"
   const [eventId, setEventId] = useState("");
@@ -361,8 +482,9 @@ const RegisterStep = () => {
       <form className="dash-step" onSubmit={goToPayment}>
         <h3 className="dash-step__title">Choose your event</h3>
         <p className="dash-step__lead">
-          You may register for <strong>one</strong> event. Pick it here, then pay and upload
-          your screenshot on the next step.
+          You&apos;re registered {mode === "team" ? "as a team of 2" : "solo"} — the fee is{" "}
+          <strong>{fee}</strong>. You may register for <strong>one</strong> event. Pick it
+          here, then pay and upload your screenshot on the next step.
         </p>
 
         <div className="dash-events">
@@ -398,15 +520,15 @@ const RegisterStep = () => {
     <form className="dash-step" onSubmit={submit}>
       <h3 className="dash-step__title">Payment</h3>
       <p className="dash-step__lead">
-        Registering for <strong>{selectedEvent?.name || "your event"}</strong>. Pay the{" "}
-        {REGISTRATION_FEE} registration fee to the account below, then upload a screenshot of
-        the payment.
+        Registering for <strong>{selectedEvent?.name || "your event"}</strong>{" "}
+        <strong>{mode === "team" ? "as a team of 2" : "solo"}</strong>. Pay the {fee}{" "}
+        registration fee to the account below, then upload a screenshot of the payment.
       </p>
 
       <div className="dash-card">
         <div className="dash-card__head">
           <h4>Payment details</h4>
-          <span className="dash-badge">{REGISTRATION_FEE}</span>
+          <span className="dash-badge">{fee}</span>
         </div>
         <dl className="dash-paydetails">
           {PAYMENT_INFO.map((row) => (
@@ -472,165 +594,38 @@ const RegisterStep = () => {
 };
 
 /* ══════════════════════════════════════════════════════════
-   Step 4 — Team (create / join) + full dashboard home
+   Step 4 — full dashboard home
    ══════════════════════════════════════════════════════════ */
 
-const TeamPanel = () => {
-  const team = useAuthStore((s) => s.team);
-  const user = useAuthStore((s) => s.user);
-  const refresh = useAuthStore((s) => s.refresh);
-
-  const [mode, setMode] = useState("choose"); // choose | create | join
-  const [name, setName] = useState("");
-  const [code, setCode] = useState("");
-  const [error, setError] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const run = async (fn) => {
-    setError(null);
-    setBusy(true);
-    try {
-      await fn();
-      await refresh();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  if (team) {
-    return (
-      <div className="dash-card">
-        <div className="dash-card__head">
-          <h4>{team.name}</h4>
-          <span className="dash-badge">
-            {team.memberCount}/{team.maxMembers || 2} members
-          </span>
-        </div>
-
-        <div className="dash-team-code">
-          <span className="dash-team-code__label">Team code</span>
-          <button
-            type="button"
-            className="dash-team-code__value"
-            onClick={() => {
-              navigator.clipboard?.writeText(team.code);
-              setCopied(true);
-              window.setTimeout(() => setCopied(false), 1500);
-            }}
-            title="Click to copy"
-          >
-            {team.code} {copied ? "· copied" : "· copy"}
-          </button>
-        </div>
-
-        <ul className="dash-members">
-          {team.members.map((m) => (
-            <li key={m.id}>
-              {m.first_name} {m.last_name}
-              {m.id === team.leaderId && <span className="dash-tag">leader</span>}
-              {m.id === user?.id && <span className="dash-tag">you</span>}
-            </li>
-          ))}
-        </ul>
-
-        {error && <p className="dash-error">{error}</p>}
-
-        <button
-          type="button"
-          className="dash-btn dash-btn--ghost"
-          disabled={busy}
-          onClick={() => run(() => api.leaveTeam())}
-        >
-          {team.isLeader ? "Disband team" : "Leave team"}
-        </button>
-      </div>
-    );
-  }
+/* Read-only. The teammate was entered at onboarding and cannot be changed from
+   here — there are no team codes, invites or self-service edits any more. */
+const TeammateCard = () => {
+  const teammate = useAuthStore((s) => s.teammate);
+  if (!teammate) return null;
 
   return (
     <div className="dash-card">
-      <h4>Your team</h4>
-      <p className="dash-step__lead">
-        Every event runs in teams of up to 2. Create a team and share the code, or join
-        a teammate&apos;s team.
-      </p>
-
-      {mode === "choose" && (
-        <div className="dash-choice">
-          <button type="button" className="dash-btn" onClick={() => setMode("create")}>
-            Create a team
-          </button>
-          <button
-            type="button"
-            className="dash-btn dash-btn--ghost"
-            onClick={() => setMode("join")}
-          >
-            Join with a code
-          </button>
+      <div className="dash-card__head">
+        <h4>Your teammate</h4>
+        <span className="dash-badge">Team of 2</span>
+      </div>
+      <dl className="dash-paydetails">
+        <div className="dash-paydetails__row">
+          <dt>Name</dt>
+          <dd>{teammate.firstName} {teammate.lastName}</dd>
         </div>
-      )}
-
-      {mode === "create" && (
-        <form
-          className="dash-inline-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            run(() => api.createTeam(name.trim()));
-          }}
-        >
-          <Field label="Team name">
-            <input value={name} onChange={(e) => setName(e.target.value)} required />
-          </Field>
-          <div className="dash-choice">
-            <button className="dash-btn" type="submit" disabled={busy || !name.trim()}>
-              {busy ? "Creating…" : "Create"}
-            </button>
-            <button
-              type="button"
-              className="dash-btn dash-btn--ghost"
-              onClick={() => setMode("choose")}
-            >
-              Back
-            </button>
-          </div>
-        </form>
-      )}
-
-      {mode === "join" && (
-        <form
-          className="dash-inline-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            run(() => api.joinTeam(code.trim().toUpperCase()));
-          }}
-        >
-          <Field label="Team code" hint="6 characters, from your team leader">
-            <input
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-              maxLength={6}
-              required
-            />
-          </Field>
-          <div className="dash-choice">
-            <button className="dash-btn" type="submit" disabled={busy || code.trim().length < 6}>
-              {busy ? "Joining…" : "Join"}
-            </button>
-            <button
-              type="button"
-              className="dash-btn dash-btn--ghost"
-              onClick={() => setMode("choose")}
-            >
-              Back
-            </button>
-          </div>
-        </form>
-      )}
-
-      {error && <p className="dash-error">{error}</p>}
+        <div className="dash-paydetails__row">
+          <dt>Phone</dt>
+          <dd>{teammate.phoneNumber}</dd>
+        </div>
+        <div className="dash-paydetails__row">
+          <dt>Email</dt>
+          <dd>{teammate.email}</dd>
+        </div>
+      </dl>
+      <p className="dash-field__hint">
+        Locked in at registration. Contact the organisers if anything here is wrong.
+      </p>
     </div>
   );
 };
@@ -665,6 +660,7 @@ const DashboardHome = () => {
           <p className="dash-profile__meta">
             {user?.email}
             {user?.phoneNumber ? ` · ${user.phoneNumber}` : ""}
+            {user?.mode ? ` · ${user.mode === "team" ? "Team of 2" : "Solo"}` : ""}
           </p>
         </div>
         <button type="button" className="dash-btn dash-btn--ghost dash-btn--sm" onClick={logout}>
@@ -693,7 +689,14 @@ const DashboardHome = () => {
         </p>
       </div>
 
-      <TeamPanel />
+      {user?.mode === "team" ? (
+        <TeammateCard />
+      ) : (
+        <div className="dash-card">
+          <h4>Solo registration</h4>
+          <p className="dash-step__lead">You&apos;re taking part on your own.</p>
+        </div>
+      )}
     </div>
   );
 };

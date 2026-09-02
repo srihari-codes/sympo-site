@@ -1,13 +1,55 @@
 import express from 'express';
+import fs from 'fs';
 import db from '../db.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 
 const router = express.Router();
 
+const MODES = ['solo', 'team'];
+
+/** Bin an uploaded file that a validation error is about to reject. */
+function discard(file) {
+  if (file?.path) {
+    fs.unlink(file.path, (err) => {
+      if (err) console.error('Failed to remove rejected upload:', file.path, err.message);
+    });
+  }
+}
+
+function serializeUser(u) {
+  return {
+    id: u.id,
+    email: u.email,
+    firstName: u.first_name,
+    lastName: u.last_name,
+    phoneNumber: u.phone_number,
+    idCardUrl: u.id_card_url,
+    profilePicUrl: u.profile_pic_url,
+    mode: u.mode || null,
+    isOnboarded: Boolean(u.is_onboarded),
+  };
+}
+
+function serializeTeammate(t) {
+  if (!t) return null;
+  return {
+    firstName: t.first_name,
+    lastName: t.last_name,
+    phoneNumber: t.phone_number,
+    email: t.email,
+    idCardUrl: t.id_card_url,
+  };
+}
+
 /**
  * POST /api/user/onboarding
- * Completes user onboarding with firstname, lastname, phone, email, id card picture, and profile picture
+ * Completes onboarding: own profile + the one-time solo/team choice. In team
+ * mode the registrar also supplies the teammate's details (name, phone, email,
+ * ID card) — the teammate never signs in.
+ *
+ * The mode is locked the first time it is set: a re-submission from an already
+ * onboarded user keeps whatever mode is on record.
  */
 router.post(
   '/onboarding',
@@ -15,64 +57,125 @@ router.post(
   upload.fields([
     { name: 'id_card', maxCount: 1 },
     { name: 'profile_pic', maxCount: 1 },
+    { name: 'teammate_id_card', maxCount: 1 },
   ]),
   (req, res) => {
+    const files = req.files || {};
+    const ownIdCard = files['id_card']?.[0];
+    const ownProfilePic = files['profile_pic']?.[0];
+    const teammateIdCard = files['teammate_id_card']?.[0];
+
+    const reject = (status, error) => {
+      discard(ownIdCard);
+      discard(ownProfilePic);
+      discard(teammateIdCard);
+      return res.status(status).json({ error });
+    };
+
     try {
-      const { first_name, last_name, phone_number, email } = req.body;
-      const files = req.files;
+      const {
+        first_name,
+        last_name,
+        phone_number,
+        email,
+        mode: requestedMode,
+        teammate_first_name,
+        teammate_last_name,
+        teammate_phone_number,
+        teammate_email,
+      } = req.body;
 
       if (!first_name || !last_name || !phone_number || !email) {
-        return res.status(400).json({ error: 'First name, last name, phone number, and email are required.' });
+        return reject(400, 'First name, last name, phone number, and email are required.');
       }
 
-      // Check for file uploads
+      const existingTeammate = db
+        .prepare('SELECT * FROM teammates WHERE user_id = ?')
+        .get(req.user.id);
+
+      // Mode is a one-time choice. Once set, incoming values are ignored.
+      let mode = req.user.mode;
+      if (!mode) {
+        mode = String(requestedMode || '').trim().toLowerCase();
+        if (!MODES.includes(mode)) {
+          return reject(400, 'Choose solo or team to continue — this cannot be changed later.');
+        }
+      }
+
+      // Own uploads (fall back to whatever is already on file).
       let idCardUrl = req.user.id_card_url;
       let profilePicUrl = req.user.profile_pic_url;
 
-      if (files && files['id_card'] && files['id_card'][0]) {
-        idCardUrl = `/uploads/${files['id_card'][0].filename}`;
-      } else if (!idCardUrl) {
-        return res.status(400).json({ error: 'ID card picture upload is required.' });
+      if (ownIdCard) idCardUrl = `/uploads/${ownIdCard.filename}`;
+      else if (!idCardUrl) return reject(400, 'ID card picture upload is required.');
+
+      if (ownProfilePic) profilePicUrl = `/uploads/${ownProfilePic.filename}`;
+      else if (!profilePicUrl) return reject(400, 'Profile picture upload is required.');
+
+      // Teammate details — only in team mode.
+      let teammate = null;
+      if (mode === 'team') {
+        const tFirst = String(teammate_first_name || '').trim();
+        const tLast = String(teammate_last_name || '').trim();
+        const tPhone = String(teammate_phone_number || '').trim();
+        const tEmail = String(teammate_email || '').trim();
+
+        if (!tFirst || !tLast || !tPhone || !tEmail) {
+          return reject(400, "Your teammate's name, phone number, and email are all required.");
+        }
+
+        let teammateIdCardUrl = existingTeammate?.id_card_url || null;
+        if (teammateIdCard) teammateIdCardUrl = `/uploads/${teammateIdCard.filename}`;
+        if (!teammateIdCardUrl) return reject(400, "Upload a photo of your teammate's college ID card.");
+
+        teammate = {
+          first_name: tFirst,
+          last_name: tLast,
+          phone_number: tPhone,
+          email: tEmail,
+          id_card_url: teammateIdCardUrl,
+        };
       }
 
-      if (files && files['profile_pic'] && files['profile_pic'][0]) {
-        profilePicUrl = `/uploads/${files['profile_pic'][0].filename}`;
-      } else if (!profilePicUrl) {
-        return res.status(400).json({ error: 'Profile/ID picture upload is required.' });
-      }
+      const save = db.transaction(() => {
+        db.prepare(`
+          UPDATE users
+          SET first_name = ?, last_name = ?, phone_number = ?, email = ?,
+              id_card_url = ?, profile_pic_url = ?, mode = ?,
+              is_onboarded = 1, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `).run(first_name, last_name, phone_number, email, idCardUrl, profilePicUrl, mode, req.user.id);
 
-      // Update user record
-      db.prepare(`
-        UPDATE users
-        SET first_name = ?,
-            last_name = ?,
-            phone_number = ?,
-            email = ?,
-            id_card_url = ?,
-            profile_pic_url = ?,
-            is_onboarded = 1,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `).run(first_name, last_name, phone_number, email, idCardUrl, profilePicUrl, req.user.id);
+        if (mode === 'team') {
+          db.prepare(`
+            INSERT INTO teammates (user_id, first_name, last_name, phone_number, email, id_card_url)
+            VALUES (@user_id, @first_name, @last_name, @phone_number, @email, @id_card_url)
+            ON CONFLICT(user_id) DO UPDATE SET
+              first_name = excluded.first_name,
+              last_name = excluded.last_name,
+              phone_number = excluded.phone_number,
+              email = excluded.email,
+              id_card_url = excluded.id_card_url,
+              updated_at = CURRENT_TIMESTAMP
+          `).run({ user_id: req.user.id, ...teammate });
+        } else {
+          db.prepare('DELETE FROM teammates WHERE user_id = ?').run(req.user.id);
+        }
+      });
+
+      save();
 
       const updatedUser = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+      const savedTeammate = db.prepare('SELECT * FROM teammates WHERE user_id = ?').get(req.user.id);
 
       res.json({
         message: 'Onboarding completed successfully!',
-        user: {
-          id: updatedUser.id,
-          email: updatedUser.email,
-          firstName: updatedUser.first_name,
-          lastName: updatedUser.last_name,
-          phoneNumber: updatedUser.phone_number,
-          idCardUrl: updatedUser.id_card_url,
-          profilePicUrl: updatedUser.profile_pic_url,
-          isOnboarded: Boolean(updatedUser.is_onboarded),
-        },
+        user: serializeUser(updatedUser),
+        teammate: serializeTeammate(savedTeammate),
       });
     } catch (error) {
       console.error('Onboarding error:', error);
-      res.status(500).json({ error: 'Failed to complete onboarding: ' + error.message });
+      reject(500, 'Failed to complete onboarding: ' + error.message);
     }
   }
 );

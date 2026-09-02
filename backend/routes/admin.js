@@ -44,7 +44,9 @@ router.get('/summary', (req, res) => {
     users: one('SELECT COUNT(*) AS n FROM users'),
     onboarded: one('SELECT COUNT(*) AS n FROM users WHERE is_onboarded = 1'),
     registrations: one('SELECT COUNT(*) AS n FROM registrations'),
-    teams: one('SELECT COUNT(*) AS n FROM teams'),
+    soloRegistrations: one("SELECT COUNT(*) AS n FROM registrations r JOIN users u ON u.id = r.user_id WHERE u.mode = 'solo'"),
+    teamRegistrations: one("SELECT COUNT(*) AS n FROM registrations r JOIN users u ON u.id = r.user_id WHERE u.mode = 'team'"),
+    teams: one("SELECT COUNT(*) AS n FROM teammates"),
     registrationsByStatus: {
       pending: byStatus.pending || 0,
       approved: byStatus.approved || 0,
@@ -63,12 +65,12 @@ router.get('/registrations', (req, res) => {
     .prepare(
       `SELECT r.id, r.event_id, r.payment_screenshot_url, r.transaction_id, r.status, r.created_at,
               u.id AS user_id, u.first_name, u.last_name, u.email, u.phone_number,
-              u.id_card_url, u.profile_pic_url, u.is_onboarded,
-              t.id AS team_id, t.name AS team_name, t.code AS team_code, t.leader_id
+              u.id_card_url, u.profile_pic_url, u.is_onboarded, u.mode,
+              tm.first_name AS tm_first, tm.last_name AS tm_last, tm.phone_number AS tm_phone,
+              tm.email AS tm_email, tm.id_card_url AS tm_id_card
        FROM registrations r
        JOIN users u ON u.id = r.user_id
-       LEFT JOIN team_members tm ON tm.user_id = u.id
-       LEFT JOIN teams t ON t.id = tm.team_id
+       LEFT JOIN teammates tm ON tm.user_id = u.id
        ORDER BY r.created_at DESC`
     )
     .all();
@@ -78,6 +80,7 @@ router.get('/registrations', (req, res) => {
       id: r.id,
       status: r.status,
       createdAt: r.created_at,
+      mode: r.mode || 'solo',
       event: { id: r.event_id, name: eventName(r.event_id) },
       paymentScreenshotUrl: r.payment_screenshot_url,
       transactionId: r.transaction_id,
@@ -91,12 +94,13 @@ router.get('/registrations', (req, res) => {
         profilePicUrl: r.profile_pic_url,
         isOnboarded: Boolean(r.is_onboarded),
       },
-      team: r.team_id
+      teammate: r.mode === 'team' && r.tm_first
         ? {
-            id: r.team_id,
-            name: r.team_name,
-            code: r.team_code,
-            isLeader: r.leader_id === r.user_id,
+            firstName: r.tm_first,
+            lastName: r.tm_last,
+            phoneNumber: r.tm_phone,
+            email: r.tm_email,
+            idCardUrl: r.tm_id_card,
           }
         : null,
     })),
@@ -132,11 +136,11 @@ router.get('/users', (req, res) => {
     .prepare(
       `SELECT u.*,
               r.event_id AS reg_event_id, r.status AS reg_status,
-              t.id AS team_id, t.name AS team_name, t.code AS team_code
+              tm.first_name AS tm_first, tm.last_name AS tm_last, tm.phone_number AS tm_phone,
+              tm.email AS tm_email, tm.id_card_url AS tm_id_card
        FROM users u
        LEFT JOIN registrations r ON r.user_id = u.id
-       LEFT JOIN team_members tm ON tm.user_id = u.id
-       LEFT JOIN teams t ON t.id = tm.team_id
+       LEFT JOIN teammates tm ON tm.user_id = u.id
        ORDER BY u.created_at DESC`
     )
     .all();
@@ -150,51 +154,76 @@ router.get('/users', (req, res) => {
       phoneNumber: u.phone_number,
       idCardUrl: u.id_card_url,
       profilePicUrl: u.profile_pic_url,
+      mode: u.mode || null,
       isOnboarded: Boolean(u.is_onboarded),
       createdAt: u.created_at,
       registration: u.reg_event_id
         ? { eventId: u.reg_event_id, eventName: eventName(u.reg_event_id), status: u.reg_status }
         : null,
-      team: u.team_id ? { id: u.team_id, name: u.team_name, code: u.team_code } : null,
+      teammate: u.mode === 'team' && u.tm_first
+        ? {
+            firstName: u.tm_first,
+            lastName: u.tm_last,
+            phoneNumber: u.tm_phone,
+            email: u.tm_email,
+            idCardUrl: u.tm_id_card,
+          }
+        : null,
     })),
   });
 });
 
 /**
  * GET /api/admin/teams
- * Every team with its members and event.
+ * Every team-mode participant paired with the teammate they registered. The
+ * registrar is always the leader; the teammate has no account.
  */
 router.get('/teams', (req, res) => {
-  const teams = db.prepare('SELECT * FROM teams ORDER BY created_at DESC').all();
-  const memberStmt = db.prepare(
-    `SELECT u.id, u.first_name, u.last_name, u.email, u.phone_number, tm.joined_at
-     FROM team_members tm JOIN users u ON u.id = tm.user_id
-     WHERE tm.team_id = ? ORDER BY tm.joined_at`
-  );
+  const rows = db
+    .prepare(
+      `SELECT u.id AS user_id, u.first_name, u.last_name, u.email, u.phone_number,
+              u.id_card_url, u.created_at,
+              tm.first_name AS tm_first, tm.last_name AS tm_last, tm.phone_number AS tm_phone,
+              tm.email AS tm_email, tm.id_card_url AS tm_id_card,
+              r.event_id, r.status AS reg_status
+       FROM teammates tm
+       JOIN users u ON u.id = tm.user_id
+       LEFT JOIN registrations r ON r.user_id = u.id
+       ORDER BY u.created_at DESC`
+    )
+    .all();
 
   res.json({
-    teams: teams.map((t) => {
-      const members = memberStmt.all(t.id);
-      return {
-        id: t.id,
-        name: t.name,
-        code: t.code,
-        event: { id: t.event_id, name: eventName(t.event_id) },
-        leaderId: t.leader_id,
-        createdAt: t.created_at,
-        memberCount: members.length,
-        maxMembers: 2,
-        members: members.map((m) => ({
-          id: m.id,
-          firstName: m.first_name,
-          lastName: m.last_name,
-          email: m.email,
-          phoneNumber: m.phone_number,
-          isLeader: m.id === t.leader_id,
-          joinedAt: m.joined_at,
-        })),
-      };
-    }),
+    teams: rows.map((r) => ({
+      id: r.user_id,
+      name: `${r.first_name || ''} ${r.last_name || ''}`.trim() + ' + ' +
+        `${r.tm_first || ''} ${r.tm_last || ''}`.trim(),
+      event: r.event_id
+        ? { id: r.event_id, name: eventName(r.event_id) }
+        : { id: null, name: 'Not registered yet' },
+      registrationStatus: r.reg_status || null,
+      createdAt: r.created_at,
+      memberCount: 2,
+      maxMembers: 2,
+      members: [
+        {
+          firstName: r.first_name,
+          lastName: r.last_name,
+          email: r.email,
+          phoneNumber: r.phone_number,
+          idCardUrl: r.id_card_url,
+          isLeader: true,
+        },
+        {
+          firstName: r.tm_first,
+          lastName: r.tm_last,
+          email: r.tm_email,
+          phoneNumber: r.tm_phone,
+          idCardUrl: r.tm_id_card,
+          isLeader: false,
+        },
+      ],
+    })),
   });
 });
 

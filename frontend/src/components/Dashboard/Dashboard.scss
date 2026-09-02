@@ -437,56 +437,89 @@ $ui-font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 }
 
-.dash-team-code {
-  display: flex;
-  align-items: center;
+/* ── solo / team mode picker (onboarding) ── */
+.dash-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
 
-  &__label {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    color: rgba($gold, 0.85);
-  }
-
-  &__value {
-    font-family: $ui-font;
-    cursor: pointer;
-    letter-spacing: 3px;
-    font-size: 16px;
-    color: $cream;
-    background: rgba($gold, 0.12);
-    border: 1px dashed rgba($gold, 0.5);
-    border-radius: 6px;
-    padding: 6px 14px;
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
   }
 }
 
-.dash-members {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.dash-mode {
+  font-family: $ui-font;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  text-align: left;
+  cursor: pointer;
+  padding: 16px;
+  border: 1px solid rgba($gold, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: $cream;
+  transition: border-color 0.2s ease, background 0.2s ease;
 
-  li {
-    font-size: 14px;
-    color: rgba($cream, 0.9);
+  &__top {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  &__label {
+    font-family: "Eagle Lake", serif;
+    font-size: 16px;
+    color: $cream;
+  }
+
+  &__fee {
+    font-size: 15px;
+    font-weight: 700;
+    color: $gold;
+  }
+
+  &__blurb {
+    font-size: 13px;
+    line-height: 1.55;
+    color: rgba($cream, 0.7);
+  }
+
+  &:hover:not(:disabled) {
+    border-color: rgba($gold, 0.6);
+  }
+
+  &.is-selected {
+    border-color: $gold;
+    background: rgba($gold, 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 }
 
-.dash-tag {
-  font-size: 10px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: rgba($gold, 0.16);
-  color: rgba($gold, 0.95);
+.dash-warn {
+  font-family: $ui-font;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #f0c860;
+  background: rgba(#e0b02c, 0.1);
+  border: 1px solid rgba(#e0b02c, 0.4);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+
+.dash-subhead {
+  font-family: "Eagle Lake", serif;
+  font-size: 15px;
+  color: $cream;
+  margin: 8px 0 -4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba($gold, 0.16);
 }
 
 /* ── profile header ── */

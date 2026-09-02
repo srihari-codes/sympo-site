@@ -31,9 +31,26 @@ export function initDb() {
       phone_number TEXT,
       id_card_url TEXT,
       profile_pic_url TEXT,
+      -- 'solo' | 'team'. Chosen at onboarding and never changed afterwards.
+      mode TEXT,
       is_onboarded INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Team mode: the registrar enters their teammate's details here. The
+    -- teammate has no account and never logs in — this row is the whole record.
+    CREATE TABLE IF NOT EXISTS teammates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER UNIQUE NOT NULL,
+      first_name TEXT NOT NULL,
+      last_name TEXT NOT NULL,
+      phone_number TEXT NOT NULL,
+      email TEXT NOT NULL,
+      id_card_url TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS registrations (
@@ -75,6 +92,12 @@ export function initDb() {
   if (!regColumns.includes('transaction_id')) {
     db.exec('ALTER TABLE registrations ADD COLUMN transaction_id TEXT');
     console.log('↳ migration: added registrations.transaction_id');
+  }
+
+  const userColumns = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name);
+  if (!userColumns.includes('mode')) {
+    db.exec('ALTER TABLE users ADD COLUMN mode TEXT');
+    console.log('↳ migration: added users.mode');
   }
 
   // A bank reference pays for exactly one registration — this is what stops the

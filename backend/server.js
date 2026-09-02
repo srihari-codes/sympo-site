@@ -10,7 +10,6 @@ import { initDb } from './db.js';
 import authRouter from './routes/auth.js';
 import userRouter from './routes/user.js';
 import eventsRouter from './routes/events.js';
-import teamsRouter from './routes/teams.js';
 import adminRouter from './routes/admin.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -40,7 +39,6 @@ app.use(
 app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
 app.use('/api/events', eventsRouter);
-app.use('/api/teams', teamsRouter);
 app.use('/api/admin', adminRouter);
 
 // Admin console (static page; auth happens client-side against /api/admin/*)

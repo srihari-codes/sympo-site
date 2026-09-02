@@ -185,7 +185,8 @@ function viewOverview() {
       <div class="card"><div class="n">${s.users}</div><div class="l">Users</div></div>
       <div class="card"><div class="n">${s.onboarded}</div><div class="l">Onboarded</div></div>
       <div class="card"><div class="n">${s.registrations}</div><div class="l">Registrations</div></div>
-      <div class="card"><div class="n">${s.teams}</div><div class="l">Teams</div></div>
+      <div class="card"><div class="n">${s.soloRegistrations ?? 0}</div><div class="l">Solo</div></div>
+      <div class="card"><div class="n">${s.teamRegistrations ?? 0}</div><div class="l">Team</div></div>
       <div class="card"><div class="n">${st.pending}</div><div class="l">Pending</div></div>
       <div class="card"><div class="n">${st.approved}</div><div class="l">Approved</div></div>
       <div class="card"><div class="n">${st.rejected}</div><div class="l">Rejected</div></div>
@@ -209,24 +210,29 @@ function viewRegistrations() {
       <span class="muted">${rows.length} total</span>
     </div>
     <table><thead><tr>
-      <th>Participant</th><th>Event</th><th>Team</th><th>Reference ID</th><th>Payment</th><th>ID card</th><th>Status</th>
+      <th>Participant</th><th>Event</th><th>Mode / teammate</th><th>Reference ID</th><th>Payment</th><th>ID cards</th><th>Status</th>
     </tr></thead><tbody id="rbody">
       ${rows.map(regRow).join("")}
     </tbody></table>`;
 }
 function regRow(r) {
   const u = r.user;
-  return `<tr data-search="${esc((u.firstName+" "+u.lastName+" "+u.email+" "+r.event.name+" "+(r.transactionId||"")).toLowerCase())}">
+  const tm = r.teammate;
+  const search = [u.firstName, u.lastName, u.email, r.event.name, r.transactionId,
+    tm && tm.firstName, tm && tm.lastName, tm && tm.email].filter(Boolean).join(" ").toLowerCase();
+  return `<tr data-search="${esc(search)}">
     <td>
       <strong>${esc(u.firstName)} ${esc(u.lastName)}</strong><br>
       <span class="muted">${esc(u.email)}</span><br>
       <span class="muted">${esc(u.phoneNumber || "no phone")}</span>
     </td>
     <td>${esc(r.event.name)}</td>
-    <td>${r.team ? esc(r.team.name) + `<br><span class="muted">${esc(r.team.code)}${r.team.isLeader ? " · leader" : ""}</span>` : `<span class="muted">solo</span>`}</td>
+    <td>${r.mode === "team" && tm
+      ? `<strong>team</strong><br>${esc(tm.firstName)} ${esc(tm.lastName)}<br><span class="muted">${esc(tm.email)} · ${esc(tm.phoneNumber || "no phone")}</span>`
+      : `<span class="muted">solo</span>`}</td>
     <td>${r.transactionId ? `<code>${esc(r.transactionId)}</code>` : `<span class="muted">—</span>`}</td>
     <td>${imgCell(r.paymentScreenshotUrl, "payment")}</td>
-    <td>${imgCell(u.idCardUrl, "id card")}</td>
+    <td>${imgCell(u.idCardUrl, "id card")}${tm ? " " + imgCell(tm.idCardUrl, "teammate id card") : ""}</td>
     <td>
       <span class="badge ${r.status}">${r.status}</span>
       <div class="row-actions">
@@ -245,39 +251,42 @@ function viewUsers() {
       <span class="muted">${rows.length} total</span>
     </div>
     <table><thead><tr>
-      <th></th><th>Name</th><th>Contact</th><th>Onboarded</th><th>ID card</th><th>Event</th><th>Team</th><th>Joined</th>
+      <th></th><th>Name</th><th>Contact</th><th>Onboarded</th><th>Mode</th><th>ID card</th><th>Event</th><th>Teammate</th><th>Joined</th>
     </tr></thead><tbody id="ubody">
       ${rows.map(userRow).join("")}
     </tbody></table>`;
 }
 function userRow(u) {
-  return `<tr data-search="${esc((u.firstName+" "+u.lastName+" "+u.email).toLowerCase())}">
+  const tm = u.teammate;
+  return `<tr data-search="${esc((u.firstName+" "+u.lastName+" "+u.email+" "+(tm ? tm.firstName+" "+tm.lastName+" "+tm.email : "")).toLowerCase())}">
     <td>${imgCell(u.profilePicUrl, "profile")}</td>
     <td><strong>${esc(u.firstName || "")} ${esc(u.lastName || "")}</strong></td>
     <td>${esc(u.email)}<br><span class="muted">${esc(u.phoneNumber || "—")}</span></td>
     <td>${u.isOnboarded ? "✓" : `<span class="muted">no</span>`}</td>
+    <td>${u.mode ? esc(u.mode) : `<span class="muted">—</span>`}</td>
     <td>${imgCell(u.idCardUrl, "id card")}</td>
     <td>${u.registration ? esc(u.registration.eventName) + `<br><span class="badge ${u.registration.status}">${u.registration.status}</span>` : `<span class="muted">—</span>`}</td>
-    <td>${u.team ? esc(u.team.name) + `<br><span class="muted">${esc(u.team.code)}</span>` : `<span class="muted">—</span>`}</td>
+    <td>${tm ? esc(tm.firstName + " " + tm.lastName) + `<br><span class="muted">${esc(tm.email)}</span>` : `<span class="muted">—</span>`}</td>
     <td class="muted">${esc((u.createdAt || "").slice(0, 10))}</td>
   </tr>`;
 }
 
 function viewTeams() {
   const rows = cache.teams;
-  return `<div class="toolbar"><span class="muted">${rows.length} teams</span></div>` + rows.map((t) => `
+  return `<div class="toolbar"><span class="muted">${rows.length} teams</span></div>` + (rows.map((t) => `
     <div class="team">
-      <h3>${esc(t.name)} <code>${esc(t.code)}</code></h3>
-      <div class="muted">${esc(t.event.name)} · ${t.memberCount}/${t.maxMembers} members · created ${esc((t.createdAt||"").slice(0,10))}</div>
-      <table style="margin-top:10px;"><thead><tr><th>Member</th><th>Email</th><th>Phone</th><th>Role</th></tr></thead><tbody>
+      <h3>${esc(t.name)}</h3>
+      <div class="muted">${esc(t.event.name)}${t.registrationStatus ? ` · <span class="badge ${t.registrationStatus}">${t.registrationStatus}</span>` : ""} · created ${esc((t.createdAt||"").slice(0,10))}</div>
+      <table style="margin-top:10px;"><thead><tr><th>Member</th><th>Email</th><th>Phone</th><th>Role</th><th>ID card</th></tr></thead><tbody>
         ${t.members.map((m) => `<tr>
-          <td>${esc(m.firstName)} ${esc(m.lastName)}</td>
-          <td>${esc(m.email)}</td>
+          <td>${esc(m.firstName || "")} ${esc(m.lastName || "")}</td>
+          <td>${esc(m.email || "—")}</td>
           <td>${esc(m.phoneNumber || "—")}</td>
-          <td>${m.isLeader ? "leader" : "member"}</td>
+          <td>${m.isLeader ? "registrar" : "teammate"}</td>
+          <td>${imgCell(m.idCardUrl, "id card")}</td>
         </tr>`).join("")}
       </tbody></table>
-    </div>`).join("") || `<p class="muted">No teams yet.</p>`;
+    </div>`).join("") || `<p class="muted">No teams yet.</p>`);
 }
 
 function wireView() {

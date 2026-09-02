@@ -94,15 +94,4 @@ export const api = {
     request("/events/register", { method: "POST", body: formData }),
 
   myRegistration: () => request("/events/my-registration"),
-
-  // ── Teams ─────────────────────────────────────────────
-  myTeam: () => request("/teams/my-team"),
-
-  createTeam: (name) =>
-    request("/teams/create", { method: "POST", body: { name } }),
-
-  joinTeam: (code) =>
-    request("/teams/join", { method: "POST", body: { code } }),
-
-  leaveTeam: () => request("/teams/leave", { method: "POST" }),
 };

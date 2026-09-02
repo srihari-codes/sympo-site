@@ -69,6 +69,7 @@ router.post('/google', async (req, res) => {
         phoneNumber: user.phone_number,
         idCardUrl: user.id_card_url,
         profilePicUrl: user.profile_pic_url,
+        mode: user.mode || null,
         isOnboarded: Boolean(user.is_onboarded),
       },
     });
@@ -90,35 +91,8 @@ router.get('/me', authenticateToken, (req, res) => {
     SELECT * FROM registrations WHERE user_id = ?
   `).get(user.id);
 
-  // Get user's team membership
-  const teamMember = db.prepare(`
-    SELECT tm.*, t.name as team_name, t.code as team_code, t.event_id as team_event_id, t.leader_id
-    FROM team_members tm
-    JOIN teams t ON tm.team_id = t.id
-    WHERE tm.user_id = ?
-  `).get(user.id);
-
-  let teamDetails = null;
-  if (teamMember) {
-    const members = db.prepare(`
-      SELECT u.id, u.first_name, u.last_name, u.email, tm.joined_at
-      FROM team_members tm
-      JOIN users u ON tm.user_id = u.id
-      WHERE tm.team_id = ?
-    `).all(teamMember.team_id);
-
-    teamDetails = {
-      id: teamMember.team_id,
-      name: teamMember.team_name,
-      code: teamMember.team_code,
-      eventId: teamMember.team_event_id,
-      leaderId: teamMember.leader_id,
-      isLeader: teamMember.leader_id === user.id,
-      members,
-      memberCount: members.length,
-      maxMembers: 2,
-    };
-  }
+  // Team mode: the teammate the registrar entered at onboarding.
+  const teammate = db.prepare('SELECT * FROM teammates WHERE user_id = ?').get(user.id);
 
   res.json({
     user: {
@@ -129,6 +103,7 @@ router.get('/me', authenticateToken, (req, res) => {
       phoneNumber: user.phone_number,
       idCardUrl: user.id_card_url,
       profilePicUrl: user.profile_pic_url,
+      mode: user.mode || null,
       isOnboarded: Boolean(user.is_onboarded),
     },
     registration: registration ? {
@@ -139,7 +114,13 @@ router.get('/me', authenticateToken, (req, res) => {
       status: registration.status,
       createdAt: registration.created_at,
     } : null,
-    team: teamDetails,
+    teammate: teammate ? {
+      firstName: teammate.first_name,
+      lastName: teammate.last_name,
+      phoneNumber: teammate.phone_number,
+      email: teammate.email,
+      idCardUrl: teammate.id_card_url,
+    } : null,
   });
 });
 
