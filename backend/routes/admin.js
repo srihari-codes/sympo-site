@@ -2,10 +2,12 @@ import express from 'express';
 import db from '../db.js';
 import { authenticateToken, requireAdmin, isAdminEmail } from '../middleware/auth.js';
 import { HARDCODED_EVENTS, TOTAL_CAPACITY, eventFill } from './events.js';
+import { sendRegistrationApproval } from '../emails/registrationApproval.js';
 
 const router = express.Router();
 
 const eventName = (id) => HARDCODED_EVENTS.find((e) => e.id === id)?.name || id;
+const eventTagline = (id) => HARDCODED_EVENTS.find((e) => e.id === id)?.tagline || '';
 
 // Every route here requires a valid login AND an email listed in ADMIN_EMAILS.
 router.use(authenticateToken, requireAdmin);
@@ -128,12 +130,54 @@ router.patch('/registrations/:id', (req, res) => {
     return res.status(400).json({ error: `status must be one of ${allowed.join(', ')}` });
   }
 
-  const reg = db.prepare('SELECT * FROM registrations WHERE id = ?').get(req.params.id);
+  const reg = db
+    .prepare(
+      `SELECT r.*, u.first_name, u.last_name, u.email, u.mode,
+              tm.first_name AS tm_first, tm.email AS tm_email
+       FROM registrations r
+       JOIN users u ON u.id = r.user_id
+       LEFT JOIN teammates tm ON tm.user_id = u.id
+       WHERE r.id = ?`
+    )
+    .get(req.params.id);
+
   if (!reg) {
     return res.status(404).json({ error: 'Registration not found.' });
   }
 
+  const oldStatus = reg.status;
   db.prepare('UPDATE registrations SET status = ? WHERE id = ?').run(status, reg.id);
+
+  // Send status update email if status changed to approved or rejected
+  if (oldStatus !== status && (status === 'approved' || status === 'rejected')) {
+    const eName = eventName(reg.event_id);
+    const eTagline = eventTagline(reg.event_id);
+
+    // Send to primary participant
+    if (reg.email) {
+      sendRegistrationApproval({
+        to: reg.email,
+        firstName: reg.first_name,
+        eventName: eName,
+        eventTagline: eTagline,
+        transactionId: reg.transaction_id,
+        status,
+      }).catch((err) => console.error(`📧 Admin ${status} email failed for ${reg.email}:`, err.message));
+    }
+
+    // If team mode, also send to teammate if email is present
+    if (reg.mode === 'team' && reg.tm_email) {
+      sendRegistrationApproval({
+        to: reg.tm_email,
+        firstName: reg.tm_first || 'Teammate',
+        eventName: eName,
+        eventTagline: eTagline,
+        transactionId: reg.transaction_id,
+        status,
+      }).catch((err) => console.error(`📧 Admin ${status} email failed for teammate ${reg.tm_email}:`, err.message));
+    }
+  }
+
   res.json({ id: reg.id, status });
 });
 

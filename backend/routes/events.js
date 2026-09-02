@@ -3,6 +3,7 @@ import fs from 'fs';
 import db from '../db.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
+import { sendRegistrationConfirmation } from '../emails/registrationConfirmation.js';
 
 const router = express.Router();
 
@@ -21,29 +22,29 @@ export const HARDCODED_EVENTS = [
   {
     id: 'iron-throne',
     name: 'Iron Throne',
-    tagline: 'Competitive Coding & Algorithmic Conquest',
-    category: 'Coding',
+    tagline: 'Jeopardy-Style Capture The Flag (CTF)',
+    category: 'Jeopardy CTF',
     capacity: 16,
   },
   {
     id: 'siege-of-servers',
     name: 'Siege of Servers',
-    tagline: 'Cyber Defence, Capture The Flag & Network Exploits',
-    category: 'CTF & Security',
+    tagline: 'Attack-Defense CTF & Server Exploits',
+    category: 'Attack-Defense CTF',
     capacity: 16,
   },
   {
     id: 'winter-war',
     name: 'Winter War',
-    tagline: 'High-Intensity Technical & Gaming Arena',
-    category: 'Gaming & Tech',
+    tagline: 'Boot2Root & Privilege Escalation CTF',
+    category: 'Boot2Root CTF',
     capacity: 16,
   },
   {
     id: 'tessarions-trail',
-    name: 'Tessarion\'s Trail',
-    tagline: 'Cryptic Treasure Hunt & Cipher Quest',
-    category: 'Treasure Hunt',
+    name: "Tessarion's Trail",
+    tagline: 'OSINT & Digital Forensics Investigation',
+    category: 'OSINT & Digital Forensics',
     capacity: 16,
   },
 ];
@@ -193,6 +194,17 @@ router.post(
       `).run(user.id, event_id, paymentScreenshotUrl, transactionId);
 
       const registration = db.prepare('SELECT * FROM registrations WHERE id = ?').get(result.lastInsertRowid);
+
+      const eventDetails = HARDCODED_EVENTS.find((e) => e.id === event_id);
+
+      // Fire-and-forget — don't block the response on email delivery.
+      sendRegistrationConfirmation({
+        to: user.email,
+        firstName: user.first_name,
+        eventName: eventDetails?.name || event_id,
+        eventTagline: eventDetails?.tagline || '',
+        transactionId,
+      }).catch((err) => console.error('📧 Confirmation email failed:', err.message));
 
       res.status(201).json({
         message: 'Event registration submitted successfully!',
