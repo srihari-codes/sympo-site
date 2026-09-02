@@ -10,7 +10,10 @@ import { useAuthStore } from "./stores/authStore";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 
 function App() {
-  const { isExperienceReady } = useExperienceStore();
+  // Select only the flag we need — the store's scrollProgress is rewritten
+  // every frame, and a bare useExperienceStore() would re-render the whole app
+  // (Modal, Dashboard, the Google button…) on every one of those writes.
+  const isExperienceReady = useExperienceStore((s) => s.isExperienceReady);
   const initAuth = useAuthStore((s) => s.init);
 
   useEffect(() => {
