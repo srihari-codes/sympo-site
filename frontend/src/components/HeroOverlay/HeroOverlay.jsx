@@ -6,7 +6,7 @@ import { useAudioStore } from "../../stores/audioStore";
 import HeroDragon from "../HeroDragon/HeroDragon";
 
 /* ── Countdown target date ── */
-const TARGET_DATE = new Date("2026-10-15T09:00:00");
+const TARGET_DATE = new Date("2026-09-12T09:00:00");
 
 function useCountdown(target) {
   const calc = () => {

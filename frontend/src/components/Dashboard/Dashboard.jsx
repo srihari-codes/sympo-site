@@ -19,6 +19,82 @@ const PAYMENT_INFO = [
    Shared bits
    ══════════════════════════════════════════════════════════ */
 
+/* Copy-to-clipboard button shown at the end of each payment detail. */
+const CopyButton = ({ value, label }) => {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef(null);
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  const copy = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        // Fallback for non-secure contexts / older mobile browsers.
+        const ta = document.createElement("textarea");
+        ta.value = value;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setCopied(true);
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard blocked — the value is still selectable by hand */
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      className={`dash-copy${copied ? " is-copied" : ""}`}
+      onClick={copy}
+      aria-label={copied ? `${label} copied` : `Copy ${label}`}
+      title={copied ? "Copied!" : "Copy"}
+    >
+      {copied ? (
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+          <path
+            d="M20 6L9 17l-5-5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+          <rect
+            x="9"
+            y="9"
+            width="11"
+            height="11"
+            rx="2"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          />
+          <path
+            d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+    </button>
+  );
+};
+
 const Field = ({ label, children, hint }) => (
   <label className="dash-field">
     <span className="dash-field__label">{label}</span>
@@ -336,7 +412,10 @@ const RegisterStep = () => {
           {PAYMENT_INFO.map((row) => (
             <div key={row.label} className="dash-paydetails__row">
               <dt>{row.label}</dt>
-              <dd>{row.value}</dd>
+              <dd>
+                <span className="dash-paydetails__value">{row.value}</span>
+                <CopyButton value={row.value} label={row.label} />
+              </dd>
             </div>
           ))}
         </dl>
