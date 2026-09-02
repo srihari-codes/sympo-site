@@ -123,8 +123,7 @@ export const modalContent = {
   },
   staff_coordinators: {
     title: "Faculty",
-    // Every field below is a bracketed placeholder, and portraits are null so
-    // nothing renders a broken image before the real assets land.
+    // Name, designation and department only — no bios or achievements here.
     faculty: [
       {
         id: "faculty-01",
@@ -132,14 +131,6 @@ export const modalContent = {
         name: "Dr. Dhanakoti V",
         designation: "Professor & Head of the Department",
         department: "Department of Cyber Security",
-        expertise: [
-          "Network Security",
-          "Computer Science Information Systems",
-          "Cloud Security",
-        ],
-        bio:
-          "Dr. Dhanakoti V is a Professor at SRM Valliammai Engineering College with extensive academic and research experience in Computer Science and Engineering. His areas of expertise include Network Security and Computer Science Information Systems, with research contributions spanning intrusion detection, cloud security, blockchain, and data-centre technologies. He has also guided doctoral research in advanced cybersecurity and cloud-computing domains.",
-        achievement: "275 Citations · 7 h-index · 30 Publications",
       },
       {
         id: "faculty-02",
@@ -147,14 +138,6 @@ export const modalContent = {
         name: "Dr. Santhana Marichamy V",
         designation: "Associate Professor",
         department: "Department of Cyber Security",
-        expertise: [
-          "Computer Science Information Systems",
-          "Computer Science & Engineering",
-          "Cybersecurity",
-        ],
-        bio:
-          "Dr. Santhana Marichamy V is an Associate Professor with extensive teaching and academic experience in Computer Science and Engineering. His areas of expertise include Computer Science Information Systems and Computer Science and Engineering, with more than two decades of experience in higher education and continued involvement in research and professional academic activities.",
-        achievement: "54 Citations · 3 h-index · 11 Publications",
       },
       {
         id: "faculty-03",
@@ -162,14 +145,6 @@ export const modalContent = {
         name: "Mr. Giridharan S",
         designation: "Assistant Professor",
         department: "Department of Cyber Security",
-        expertise: [
-          "Computer Science Information Systems",
-          "Cybersecurity",
-          "Information Technology",
-        ],
-        bio:
-          "Mr. Giridharan S is an Assistant Professor in the Department of Cyber Security at SRM Valliammai Engineering College, with several years of teaching experience across Computer Science, Information Technology, and Cyber Security. His academic interests are centered on Computer Science Information Systems, supported by experience in higher education and ongoing research contributions in the field.",
-        achievement: "3 Citations · 1 h-index · 13 Publications",
       },
       {
         id: "faculty-04",
@@ -177,14 +152,6 @@ export const modalContent = {
         name: "Ms. Nandhashree K R",
         designation: "Assistant Professor",
         department: "Department of Cyber Security",
-        expertise: [
-          "Computer Science Cybernetics",
-          "Image Processing",
-          "Cybersecurity",
-        ],
-        bio:
-          "Ms. Nandhashree K R is an Assistant Professor in the Department of Cyber Security at SRM Valliammai Engineering College. She has experience in Computer Science Cybernetics and Image Processing, with an academic background in engineering and a focus on teaching and developing expertise within emerging computing and cybersecurity domains.",
-        achievement: "Computer Society of India — Life Member",
       },
       {
         id: "faculty-05",
@@ -199,14 +166,6 @@ export const modalContent = {
         name: "Mr. Rajkumar E",
         designation: "Assistant Professor",
         department: "Department of Cyber Security",
-        expertise: [
-          "Computer Science Cybernetics",
-          "Landscape",
-          "Cybersecurity",
-        ],
-        bio:
-          "Mr. Rajkumar E is an Assistant Professor in the Department of Cyber Security at SRM Valliammai Engineering College. His academic expertise includes Computer Science Cybernetics and Landscape, supported by teaching experience across Cyber Security, Information Technology, and Computer Science. He is also actively involved in academic and institutional activities, including anti-ragging initiatives.",
-        achievement: "1 Citation · 1 h-index · 11 Publications",
       },
       {
         id: "faculty-07",
