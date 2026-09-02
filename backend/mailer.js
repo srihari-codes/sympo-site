@@ -10,13 +10,13 @@
  */
 import nodemailer from 'nodemailer';
 
-const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
-
 // Build the transport lazily so the app still boots if SMTP isn't configured.
 let _transport = null;
 
 function getTransport() {
   if (_transport) return _transport;
+
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
 
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
     console.warn('⚠️  SMTP not configured — emails will be skipped.');
@@ -48,8 +48,10 @@ export async function sendMail(to, subject, html) {
   const transport = getTransport();
   if (!transport) return null;
 
+  const from = process.env.SMTP_FROM || '"Zyverse 2K26" <admin@whitehatians.in>';
+
   const info = await transport.sendMail({
-    from: SMTP_FROM || '"Zyverse 2K26" <admin@whitehatians.in>',
+    from,
     to,
     subject,
     html,
