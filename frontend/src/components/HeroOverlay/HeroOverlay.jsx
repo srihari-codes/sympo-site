@@ -6,7 +6,7 @@ import { useAudioStore } from "../../stores/audioStore";
 import HeroDragon from "../HeroDragon/HeroDragon";
 
 /* ── Countdown target date ── */
-const TARGET_DATE = new Date("2026-10-15T09:00:00");
+const TARGET_DATE = new Date("2026-09-12T09:00:00");
 
 function useCountdown(target) {
   const calc = () => {
@@ -224,9 +224,8 @@ const HeroOverlay = ({ visible = true }) => {
           {NAV_LINKS.map(({ id, modalId, target, Icon }) => (
             <button
               key={id}
-              className={`ho-bottom-panel__item${
-                navRequest?.modalId === modalId ? " is-active" : ""
-              }`}
+              className={`ho-bottom-panel__item${navRequest?.modalId === modalId ? " is-active" : ""
+                }`}
               onClick={() => handleNavClick(modalId, target)}
               type="button"
               disabled={Boolean(navRequest)}
