@@ -309,7 +309,7 @@
   top: 50%;
   left: 0;
   width: calc(50% - 2.5vw);
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 3;
   --shift: 0px;
   transform: translateY(-50%) translateX(var(--shift)) rotateY(var(--flip, 0deg));
   transform-style: preserve-3d;
@@ -486,7 +486,7 @@
 }
 
 /* ── Tablet / phone: poster pinned above the copy, flipping in place ──
-   Portrait posters (3:4) need a taller, narrower stage on small screens. */
+   Landscape posters (4:3) need a wider stage on small screens. */
 @media (max-width: 900px) {
   .modal-title--floating {
     top: 18px;
@@ -512,7 +512,7 @@
     transform: translateX(-50%) rotateY(var(--flip, 0deg));
     width: auto;
     height: 100%;
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 4 / 3;
 
     &.is-right {
       --shift: 0px;

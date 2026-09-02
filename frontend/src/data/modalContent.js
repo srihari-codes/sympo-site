@@ -3,14 +3,13 @@ export const modalContent = {
     title: "Events & Competitions",
     link: "https://zyverse.whitehatians.in",
     linkText: "Register Now (Fee: ₹150/-)",
-    // Each poster is framed 3:4 portrait (1587×2245 px), so use
-    // landscape artwork per event.
+    // Each poster is landscape (4:3 aspect ratio).
     eventList: [
       {
         id: "scrolls-of-the-realm",
         name: "Scrolls of the Realm",
         tagline: "Technical Paper & Research Presentation",
-        image: "/textures/Event_Posters/Scrolls_of_Realm.png",
+        image: "/textures/Event_Posters/Scrolls_of_Realm.webp",
         description:
           "Providing opportunities for engineering students to showcase their innovative ideas and technical solutions. Participants can present their work in areas like cyber security, AI, Networking and computer science related fields.",
       },
@@ -18,7 +17,7 @@ export const modalContent = {
         id: "iron-throne",
         name: "Iron Throne",
         tagline: "Competitive Coding & Algorithmic Conquest",
-        image: "/textures/Event_Posters/Iron_Throne.png",
+        image: "/textures/Event_Posters/Iron_Throne.webp",
         description:
           "Iron Throne is a Jeopardy-style Capture the Flag (CTF) challenge where participants solve a series of cybersecurity tasks to uncover hidden flags. It tests skills in areas such as cryptography, web security, digital forensics, OSINT, reverse engineering, and network analysis. The goal is to solve challenges, collect flags, earn points, and climb the leaderboard.",
       },
@@ -26,7 +25,7 @@ export const modalContent = {
         id: "siege-of-servers",
         name: "Siege of Servers",
         tagline: "Cyber Defence, Capture The Flag & Network Exploits",
-        image: "/textures/Event_Posters/Siege_of_Servers.png",
+        image: "/textures/Event_Posters/Siege_of_servers.webp",
         description:
           "An Attack-Defense CTF where teams compete to secure their own servers while finding and exploiting vulnerabilities in their opponents’ systems. Participants must balance offensive and defensive strategies through vulnerability exploitation and system hardening. The team that defends effectively, attacks successfully, and scores the most points wins.",
       },
@@ -34,7 +33,7 @@ export const modalContent = {
         id: "winter-war",
         name: "Winter War",
         tagline: "High-Intensity Technical & Gaming Arena",
-        image: "/textures/Event_Posters/Winter_War.png",
+        image: "/textures/Event_Posters/Winter_War.webp",
         description:
           "A Cybersecurity challenge where participants start with a vulnerable machine and work their way from initial access to full system control. The goal is to discover vulnerabilities, exploit them, escalate privileges, and capture the hidden flags.",
       },
@@ -42,7 +41,7 @@ export const modalContent = {
         id: "tessarions-trail",
         name: "Tessarion's Trail",
         tagline: "Cryptic Treasure Hunt & Cipher Quest",
-        image: "/textures/Event_Posters/Tessarians_Trail.png",
+        image: "/textures/Event_Posters/Tessarians_Trail.webp",
         description:
           "The Participants investigate a crime using OSINT, connect clues and digital traces, uncover the criminal’s identity, and submit their name as the final flag.",
       },
@@ -127,63 +126,63 @@ export const modalContent = {
     faculty: [
       {
         id: "faculty-01",
-        portrait: "/images/faculty/01.jpg",
+        portrait: "/images/faculty/01.webp",
         name: "Dr. Dhanakoti V",
         designation: "Professor & Head of the Department",
         department: "Department of Cyber Security",
       },
       {
         id: "faculty-02",
-        portrait: "/images/faculty/02.jpg",
+        portrait: "/images/faculty/02.webp",
         name: "Dr. Santhana Marichamy V",
         designation: "Associate Professor",
         department: "Department of Cyber Security",
       },
       {
         id: "faculty-03",
-        portrait: "/images/faculty/03.jpg",
+        portrait: "/images/faculty/03.webp",
         name: "Mr. Giridharan S",
         designation: "Assistant Professor",
         department: "Department of Cyber Security",
       },
       {
         id: "faculty-04",
-        portrait: "/images/faculty/04.jpg",
+        portrait: "/images/faculty/04.webp",
         name: "Ms. Nandhashree K R",
         designation: "Assistant Professor",
         department: "Department of Cyber Security",
       },
       {
         id: "faculty-05",
-        portrait: "/images/faculty/05.jpg",
+        portrait: "/images/faculty/05.webp",
         name: "Ms. Raghavi M",
         designation: "Assistant Professor",
         department: "Department of Cyber Security",
       },
       {
         id: "faculty-06",
-        portrait: "/images/faculty/06.jpg",
+        portrait: "/images/faculty/06.webp",
         name: "Mr. Rajkumar E",
         designation: "Assistant Professor",
         department: "Department of Cyber Security",
       },
       {
         id: "faculty-07",
-        portrait: "/images/faculty/07.jpg",
+        portrait: "/images/faculty/07.webp",
         name: "Ms. Sathya T",
         designation: "Assistant Professor",
         department: "Department of Cyber Security",
       },
       {
         id: "faculty-08",
-        portrait: "/images/faculty/08.jpg",
+        portrait: "/images/faculty/08.webp",
         name: "Ms. C. Jesifica Cinthamani",
         designation: "Assistant Professor",
         department: "Department of Cyber Security",
       },
       {
         id: "faculty-09",
-        portrait: "/images/faculty/09.jpg",
+        portrait: "/images/faculty/09.webp",
         name: "Mr. Avinesh Kumar G",
         designation: "Assistant Professor",
         department: "Department of Cyber Security",
