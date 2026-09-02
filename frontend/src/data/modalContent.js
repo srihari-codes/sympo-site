@@ -259,26 +259,26 @@ export const modalContent = {
       },
       {
         id: "team-secretary",
-        portrait: "/images/team/secretary.jpg",
+        portrait: "/images/team/Srihari.png",
         name: "Srihari",
         designation: "Secretary",
       },
       {
         id: "team-treasurer",
         portrait: "/images/team/treasurer.jpg",
-        name: "Rakesh Kannan",
-        designation: "Treasurer",
+        name: "Rakesh Kannan C K",
+        designation: "Treasurer & Souvenir",
       },
       {
         id: "team-administrative",
-        portrait: "/images/team/administrative.jpg",
+        portrait: "/images/team/Durai.png",
         name: "Durai R",
-        designation: "Administrative",
+        designation: "Administrative & Iron Thorne Event Head",
       },
       {
         id: "team-anchoring",
         portrait: "/images/team/anchoring.jpg",
-        name: "Sreelaya",
+        name: "Sreelaya S",
         designation: "Anchoring",
       },
 
@@ -288,12 +288,6 @@ export const modalContent = {
         portrait: "/images/team/scrolls.jpg",
         name: "Dharshini",
         designation: "Event Organizer — Scrolls of the Realm",
-      },
-      {
-        id: "team-iron-throne",
-        portrait: "/images/team/iron-throne.jpg",
-        name: "Durai",
-        designation: "Event Organizer — Iron Throne",
       },
       {
         id: "team-tessarions-trail",
@@ -350,12 +344,6 @@ export const modalContent = {
         portrait: null,
         name: "Nithin Shyam",
         designation: "Promotion Committee",
-      },
-      {
-        id: "team-souvenir",
-        portrait: null,
-        name: "Rakesh Kannan",
-        designation: "Souvenir",
       },
       {
         id: "team-decoration",
