@@ -64,8 +64,8 @@ export const modalContent = {
         id: "registration-start",
         name: "REGISTRATION START",
         icon: "register",
-        date: "[DATE]",
-        time: "[TIME]",
+        date: "12.09.2026",
+        time: "8:00",
         detail:
           "Desks open in the main foyer. Carry your college ID and the confirmation sent to your email.",
       },
@@ -73,8 +73,8 @@ export const modalContent = {
         id: "registration-end",
         name: "REGISTRATION END",
         icon: "clipboard",
-        date: "[DATE]",
-        time: "[TIME]",
+        date: "12.09.2026",
+        time: "9:00",
         detail:
           "Last call for on-desk registration. Brackets are locked after this point.",
       },
@@ -82,8 +82,8 @@ export const modalContent = {
         id: "inauguration-start",
         name: "INAUGURATION START",
         icon: "spark",
-        date: "[DATE]",
-        time: "[TIME]",
+        date: "12.09.2026",
+        time: "9:00",
         detail:
           "Formal opening of Zyverse 2K26, with an address from the department and the chief guest.",
       },
@@ -91,8 +91,8 @@ export const modalContent = {
         id: "event-commencement",
         name: "EVENT COMMENCEMENT",
         icon: "rocket",
-        date: "[DATE]",
-        time: "[TIME]",
+        date: "12.09.2026",
+        time: "10:00",
         detail:
           "All five events begin in parallel. Report to your assigned hall ten minutes ahead.",
       },
@@ -100,8 +100,8 @@ export const modalContent = {
         id: "lunch-break",
         name: "LUNCH BREAK",
         icon: "lunch",
-        date: "[DATE]",
-        time: "[TIME]",
+        date: "12.09.2026",
+        time: "12:30",
         detail:
           "Rounds in progress pause here and resume from the same state afterwards.",
       },
@@ -109,8 +109,8 @@ export const modalContent = {
         id: "event-resuming",
         name: "EVENT RESUMING",
         icon: "resume",
-        date: "[DATE]",
-        time: "[TIME]",
+        date: "12.09.2026",
+        time: "01:30",
         detail:
           "Afternoon rounds begin, running through to the finals of every event.",
       },
@@ -118,8 +118,8 @@ export const modalContent = {
         id: "valedictory",
         name: "PRIZE DISTRIBUTION & VALEDICTORY CEREMONY",
         icon: "trophy",
-        date: "[DATE]",
-        time: "[TIME]",
+        date: "12.09.2026",
+        time: "03:00",
         detail:
           "Winners announced across all five events, the ₹12,000/- prize pool distributed, then the closing ceremony.",
       },
@@ -225,19 +225,19 @@ export const modalContent = {
       {
         id: "team-treasurer",
         portrait: "/images/team/Rakesh.webp",
-        name: "Rakesh Kannan C K",
+        name: "Rakesh Kannan",
         designation: "Treasurer & Souvenir",
       },
       {
         id: "team-administrative",
         portrait: "/images/team/Durai.webp",
-        name: "Durai R",
+        name: "Durai",
         designation: "Administrative & Iron Throne Event Head",
       },
       {
         id: "team-anchoring",
-        portrait: null,
-        name: "Sreelaya S",
+        portrait: "/images/team/Sreelaya.webp",
+        name: "Sreelaya",
         designation: "Anchoring",
       },
       {
@@ -264,7 +264,7 @@ export const modalContent = {
       {
         id: "team-tessarions-trail",
         portrait: "/images/team/Saajith.webp",
-        name: "Saajith Ms",
+        name: "Saajith",
         designation: "Event Organizer — Tessarion's Trail",
       },
       {
@@ -284,7 +284,7 @@ export const modalContent = {
       {
         id: "team-discipline",
         portrait: "/images/team/Saahith.webp",
-        name: "Saahith G",
+        name: "Saahith",
         designation: "Discipline Committee Head",
       },
       {
@@ -295,8 +295,8 @@ export const modalContent = {
       },
       {
         id: "team-design",
-        portrait: null,
-        name: "Naveen N",
+        portrait: "/images/team/Naveen.webp",
+        name: "Naveen",
         designation: "Designing & Documentation Head",
       },
       {
@@ -308,7 +308,7 @@ export const modalContent = {
       {
         id: "team-reception",
         portrait: "/images/team/ShanmugaPriya.webp",
-        name: "Shamuga Priya",
+        name: "Shunmuga Priya",
         designation: "Reception Head",
       },
       {
@@ -320,7 +320,7 @@ export const modalContent = {
       {
         id: "team-decoration",
         portrait: "/images/team/Harish.webp",
-        name: "Harish K",
+        name: "Harish",
         designation: "Decoration Head",
       },
       {
