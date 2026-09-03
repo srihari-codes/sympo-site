@@ -315,10 +315,11 @@
   top: 50%;
   left: 0;
   width: calc(50% - 2.5vw);
-  /* The artwork is 1491×1055. Matching the frame to it exactly means there
-     is nothing for object-fit to crop or letterbox — a 4/3 frame was
-     shaving ~6% off the left and right of every poster. */
-  aspect-ratio: 1491 / 1055;
+  /* Frame matched to the artwork so object-fit has nothing to crop or
+     letterbox. The posters are SVGs with viewBox 452.88 × 255 (1.776); they
+     replaced 1491 × 1055 WebPs (1.413), so this ratio moves with them —
+     leaving it at the old value would band every poster top and bottom. */
+  aspect-ratio: 452.88 / 255;
   --shift: 0px;
   transform: translateY(-50%) translateX(var(--shift)) rotateY(var(--flip, 0deg));
   transform-style: preserve-3d;
@@ -522,7 +523,7 @@
      copy's clearance can never drift apart. */
   .modal-deck {
     --deck-h: 38vh;
-    --poster-h: calc(min(90vw * 1055 / 1491, var(--deck-h)));
+    --poster-h: calc(min(90vw * 255 / 452.88, var(--deck-h)));
   }
 
   .modal-deck__stage {
@@ -540,7 +541,7 @@
     transform: translateX(-50%) rotateY(var(--flip, 0deg));
     height: var(--poster-h);
     width: auto;
-    aspect-ratio: 1491 / 1055;
+    aspect-ratio: 452.88 / 255;
 
     &.is-right {
       --shift: 0px;

@@ -10,7 +10,7 @@ export const modalContent = {
         name: "Scrolls of the Realm",
         tagline: "Technical Paper & Research Presentation",
         category: "Paper Presentation",
-        image: "/textures/Event_Posters/Scrolls_of_Realm.webp",
+        image: "/textures/Event_Posters/Scrolls_of_Realm.svg",
         description:
           "Providing opportunities for engineering students to showcase their innovative ideas and technical solutions. Participants can present their work in areas like cyber security, AI, Networking and computer science related fields.",
       },
@@ -19,7 +19,7 @@ export const modalContent = {
         name: "Iron Throne",
         tagline: "Jeopardy-Style Capture The Flag (CTF)",
         category: "Jeopardy CTF",
-        image: "/textures/Event_Posters/Iron_Throne.webp",
+        image: "/textures/Event_Posters/Iron_Throne.svg",
         description:
           "Iron Throne is a Jeopardy-style Capture the Flag (CTF) challenge where participants solve a series of cybersecurity tasks to uncover hidden flags. It tests skills in areas such as cryptography, web security, digital forensics, OSINT, reverse engineering, and network analysis. The goal is to solve challenges, collect flags, earn points, and climb the leaderboard.",
       },
@@ -28,7 +28,7 @@ export const modalContent = {
         name: "Siege of Servers",
         tagline: "Attack-Defense CTF & Server Exploits",
         category: "Attack-Defense CTF",
-        image: "/textures/Event_Posters/Siege_of_servers.webp",
+        image: "/textures/Event_Posters/Siege_of_servers.svg",
         description:
           "An Attack-Defense CTF where teams compete to secure their own servers while finding and exploiting vulnerabilities in their opponents’ systems. Participants must balance offensive and defensive strategies through vulnerability exploitation and system hardening. The team that defends effectively, attacks successfully, and scores the most points wins.",
       },
@@ -37,7 +37,7 @@ export const modalContent = {
         name: "Winter War",
         tagline: "Boot2Root & Privilege Escalation CTF",
         category: "Boot2Root CTF",
-        image: "/textures/Event_Posters/Winter_War.webp",
+        image: "/textures/Event_Posters/Winter_War.svg",
         description:
           "A Cybersecurity challenge where participants start with a vulnerable machine and work their way from initial access to full system control. The goal is to discover vulnerabilities, exploit them, escalate privileges, and capture the hidden flags.",
       },
@@ -46,7 +46,7 @@ export const modalContent = {
         name: "Tessarion's Trail",
         tagline: "OSINT & Digital Forensics Investigation",
         category: "OSINT & Digital Forensics",
-        image: "/textures/Event_Posters/Tessarians_Trail.webp",
+        image: "/textures/Event_Posters/Tessarians_Trail.svg",
         description:
           "The Participants investigate a crime using OSINT, connect clues and digital traces, uncover the criminal’s identity, and submit their name as the final flag.",
       },

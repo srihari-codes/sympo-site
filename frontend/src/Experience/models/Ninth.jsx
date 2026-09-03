@@ -133,7 +133,7 @@ const POSTER_REST_LIFT = 0.0012;
 const POSTER_HOVER_LIFT = 0.006;
 
 const TableTopPoster = ({ progress, isModalOpen, onClick }) => {
-  const posterTexture = useTexture("/textures/event_poster.png");
+  const posterTexture = useTexture("/textures/event_poster1.png");
   const [hovered, setHovered] = useState(false);
   const meshRef = useRef();
 
@@ -233,7 +233,7 @@ export default function Model({ progress = 0, pulseIntensity = 0, ...props }) {
       {
         id: "dashboard",
         title: "DASHBOARD",
-        texturePath: "/textures/valyria_about.png",
+        texturePath: "/textures/valyria_dashboard.png",
         position: [-0.457, 9.285, -48.4],
       },
       {
