@@ -49,7 +49,7 @@
   .row-actions { display: flex; gap: 6px; margin-top: 6px; }
   .row-actions button { padding: 4px 10px; font-size: 12px; }
   .muted { color: var(--muted); }
-  .team { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+  .team { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 12px; position: relative; }
   .team h3 { margin: 0 0 4px; font-size: 15px; }
   .team code { background: rgba(201,168,76,.12); padding: 2px 8px; border-radius: 5px; letter-spacing: 2px; }
   .center { min-height: 70vh; display: grid; place-items: center; text-align: center; }
@@ -57,9 +57,78 @@
   #err { color: #ff9d7a; margin-top: 12px; }
   .search { padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; color: var(--cream); font-family: var(--ui); margin-bottom: 14px; width: 260px; max-width: 100%; }
   .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+
+  /* Danger button */
+  button.danger {
+    background: rgba(224,94,38,.12); border-color: rgba(224,94,38,.4); color: #ff9d7a;
+  }
+  button.danger:hover { background: rgba(224,94,38,.28); border-color: var(--ember); color: #fff; }
+
+  /* Confirmation modal overlay */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,.65); backdrop-filter: blur(4px);
+    display: grid; place-items: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s ease;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+  .modal-box {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 28px 32px; max-width: 440px; width: 90%;
+    box-shadow: 0 12px 40px rgba(0,0,0,.5);
+    transform: translateY(12px) scale(.97); transition: transform .2s ease;
+  }
+  .modal-overlay.open .modal-box { transform: translateY(0) scale(1); }
+  .modal-box .modal-icon { font-size: 32px; margin-bottom: 8px; }
+  .modal-box h2 { margin: 0 0 8px; font-size: 17px; color: var(--cream); }
+  .modal-box p { color: var(--muted); font-size: 13px; line-height: 1.55; margin: 0 0 20px; }
+  .modal-box p strong { color: var(--cream); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-actions button.confirm-danger {
+    background: linear-gradient(90deg, #c0392b, var(--ember)); color: #fff;
+    border-color: transparent; font-weight: 600;
+  }
+  .modal-actions button.confirm-danger:hover { filter: brightness(1.1); }
+
+  /* Toast notification */
+  .toast-container {
+    position: fixed; top: 20px; right: 20px; z-index: 200;
+    display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+  }
+  .toast {
+    pointer-events: auto;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 20px; font-size: 13px; color: var(--cream);
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    display: flex; align-items: center; gap: 10px;
+    transform: translateX(120%); transition: transform .3s cubic-bezier(.22,1,.36,1);
+    max-width: 380px;
+  }
+  .toast.show { transform: translateX(0); }
+  .toast.success { border-left: 3px solid #8fe3b0; }
+  .toast.error { border-left: 3px solid #ff9d7a; }
+  .toast .toast-icon { font-size: 18px; flex-shrink: 0; }
+  .toast .toast-msg { flex: 1; }
 </style>
 </head>
 <body>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-icon" id="modalIcon">⚠️</div>
+    <h2 id="modalTitle">Confirm Action</h2>
+    <p id="modalMsg">Are you sure?</p>
+    <div class="modal-actions">
+      <button id="modalCancel">Cancel</button>
+      <button class="confirm-danger" id="modalConfirm">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toasts"></div>
 
 <div id="login" class="center">
   <div class="box">
@@ -259,7 +328,7 @@ function viewUsers() {
       <span class="muted">${rows.length} total</span>
     </div>
     <table><thead><tr>
-      <th></th><th>Name</th><th>Contact</th><th>Onboarded</th><th>Mode</th><th>ID card</th><th>Event</th><th>Teammate</th><th>Joined</th>
+      <th></th><th>Name</th><th>Contact</th><th>Onboarded</th><th>Mode</th><th>ID card</th><th>Event</th><th>Teammate</th><th>Joined</th><th>Actions</th>
     </tr></thead><tbody id="ubody">
       ${rows.map(userRow).join("")}
     </tbody></table>`;
@@ -276,6 +345,7 @@ function userRow(u) {
     <td>${u.registration ? esc(u.registration.eventName) + `<br><span class="badge ${u.registration.status}">${u.registration.status}</span>` : `<span class="muted">—</span>`}</td>
     <td>${tm ? esc(tm.firstName + " " + tm.lastName) + `<br><span class="muted">${esc(tm.email)}</span><br><span class="muted">${esc(tm.college || "—")}</span>` : `<span class="muted">—</span>`}</td>
     <td class="muted">${esc((u.createdAt || "").slice(0, 10))}</td>
+    <td><button class="danger" data-delete-user="${u.id}" data-delete-name="${esc([u.firstName, u.lastName].filter(Boolean).join(" "))}" data-delete-email="${esc(u.email)}">Delete</button></td>
   </tr>`;
 }
 
@@ -283,8 +353,13 @@ function viewTeams() {
   const rows = cache.teams;
   return `<div class="toolbar"><span class="muted">${rows.length} teams</span></div>` + (rows.map((t) => `
     <div class="team">
-      <h3>${esc(t.name)}</h3>
-      <div class="muted">${esc(t.event.name)}${t.registrationStatus ? ` · <span class="badge ${t.registrationStatus}">${t.registrationStatus}</span>` : ""} · created ${esc((t.createdAt||"").slice(0,10))}</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+        <div>
+          <h3>${esc(t.name)}</h3>
+          <div class="muted">${esc(t.event.name)}${t.registrationStatus ? ` · <span class="badge ${t.registrationStatus}">${t.registrationStatus}</span>` : ""} · created ${esc((t.createdAt||"").slice(0,10))}</div>
+        </div>
+        <button class="danger" data-delete-team="${t.id}" data-team-name="${esc(t.name)}" data-team-event="${esc(t.event.name)}">Remove Team</button>
+      </div>
       <table style="margin-top:10px;"><thead><tr><th>Member</th><th>Email</th><th>Phone</th><th>College</th><th>Role</th><th>ID card</th></tr></thead><tbody>
         ${t.members.map((m) => `<tr>
           <td>${esc(m.firstName || "")} ${esc(m.lastName || "")}</td>
@@ -316,6 +391,37 @@ function wireView() {
     b.addEventListener("click", () => setStatus(b.dataset.approve, "approved")));
   document.querySelectorAll("[data-reject]").forEach((b) =>
     b.addEventListener("click", () => setStatus(b.dataset.reject, "rejected")));
+
+  // Delete user buttons
+  document.querySelectorAll("[data-delete-user]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const id = b.dataset.deleteUser;
+      const name = b.dataset.deleteName;
+      const email = b.dataset.deleteEmail;
+      showConfirmModal({
+        icon: "🗑️",
+        title: "Delete User Account",
+        // A user who signed in but never onboarded has no name yet — identify them by email alone.
+        message: `Delete user ${name ? `<strong>${esc(name)}</strong> (${esc(email)})` : `<strong>${esc(email)}</strong>`}? This will permanently remove their account, registrations, and team data.<br><br>This action <strong>cannot be undone</strong>.`,
+        confirmText: "Delete User",
+        onConfirm: () => deleteUser(id),
+      });
+    }));
+
+  // Remove team buttons
+  document.querySelectorAll("[data-delete-team]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const userId = b.dataset.deleteTeam;
+      const teamName = b.dataset.teamName;
+      const eventName = b.dataset.teamEvent;
+      showConfirmModal({
+        icon: "⚠️",
+        title: "Remove Team",
+        message: `Remove team <strong>${esc(teamName)}</strong> from <strong>${esc(eventName)}</strong>?<br><br>This will delete the teammate record and cancel their registration. The registrar's account will remain but will need to re-onboard.`,
+        confirmText: "Remove Team",
+        onConfirm: () => deleteTeam(userId),
+      });
+    }));
 }
 
 async function setStatus(id, status) {
@@ -326,6 +432,76 @@ async function setStatus(id, status) {
     cache.summary = await api("/admin/summary");
     render();
   } catch (e) { alert(e.message); }
+}
+
+/* ---- delete user ---- */
+async function deleteUser(id) {
+  try {
+    const res = await api("/admin/users/" + id, { method: "DELETE" });
+    showToast("success", `User ${res.deleted.name || res.deleted.email} deleted successfully.`);
+    await loadAll();
+    render();
+  } catch (e) {
+    showToast("error", e.message);
+  }
+}
+
+/* ---- delete team ---- */
+async function deleteTeam(userId) {
+  try {
+    const res = await api("/admin/teams/" + userId, { method: "DELETE" });
+    showToast("success", `Team removed. ${res.deleted.teammateName} unlinked from ${res.deleted.registrarEmail}.`);
+    await loadAll();
+    render();
+  } catch (e) {
+    showToast("error", e.message);
+  }
+}
+
+/* ---- confirm modal ---- */
+let _modalResolve = null;
+function showConfirmModal({ icon, title, message, confirmText, onConfirm }) {
+  $("#modalIcon").textContent = icon || "⚠️";
+  $("#modalTitle").textContent = title || "Confirm";
+  $("#modalMsg").innerHTML = message || "Are you sure?";
+  $("#modalConfirm").textContent = confirmText || "Confirm";
+  $("#confirmModal").classList.add("open");
+
+  // Clean up old listeners by cloning
+  const oldConfirm = $("#modalConfirm");
+  const newConfirm = oldConfirm.cloneNode(true);
+  oldConfirm.parentNode.replaceChild(newConfirm, oldConfirm);
+
+  const oldCancel = $("#modalCancel");
+  const newCancel = oldCancel.cloneNode(true);
+  oldCancel.parentNode.replaceChild(newCancel, oldCancel);
+
+  const close = () => $("#confirmModal").classList.remove("open");
+
+  newCancel.addEventListener("click", close);
+  newConfirm.addEventListener("click", () => {
+    close();
+    onConfirm();
+  });
+
+  // Close on overlay click
+  $("#confirmModal").onclick = (e) => { if (e.target === $("#confirmModal")) close(); };
+}
+
+/* ---- toast ---- */
+function showToast(type, msg) {
+  const container = $("#toasts");
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  // msg carries server-echoed names typed by participants — set it as text, never HTML.
+  toast.innerHTML = `<span class="toast-icon">${type === "success" ? "✅" : "❌"}</span><span class="toast-msg"></span>`;
+  toast.querySelector(".toast-msg").textContent = msg;
+  container.appendChild(toast);
+  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add("show")));
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 350);
+  }, 3500);
 }
 
 /* ---- events ---- */

@@ -1,8 +1,27 @@
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import db from '../db.js';
 import { authenticateToken, requireAdmin, isAdminEmail } from '../middleware/auth.js';
 import { HARDCODED_EVENTS, TOTAL_CAPACITY, eventFill } from './events.js';
 import { sendRegistrationApproval } from '../emails/registrationApproval.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsDir = process.env.UPLOAD_DIR || path.join(__dirname, '..', 'uploads');
+
+/** Silently remove an uploaded file by its URL path (e.g. '/uploads/abc.jpg'). */
+function removeUpload(urlPath) {
+  if (!urlPath) return;
+  const basename = path.basename(urlPath);
+  const filePath = path.join(uploadsDir, basename);
+  fs.unlink(filePath, (err) => {
+    if (err && err.code !== 'ENOENT') {
+      console.error('⚠ Failed to remove upload:', filePath, err.message);
+    }
+  });
+}
 
 const router = express.Router();
 
@@ -284,6 +303,101 @@ router.get('/teams', (req, res) => {
         },
       ],
     })),
+  });
+});
+
+/**
+ * DELETE /api/admin/users/:id
+ * Permanently delete a user account and all associated data.
+ * SQLite ON DELETE CASCADE handles: registrations, teammates, team_members, teams.
+ * Uploaded files (profile pic, ID card, payment screenshot) are cleaned from disk.
+ */
+router.delete('/users/:id', (req, res) => {
+  const userId = Number(req.params.id);
+
+  // Safety: prevent admin from deleting their own account
+  if (userId === req.user.id) {
+    return res.status(400).json({ error: 'You cannot delete your own admin account.' });
+  }
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found.' });
+  }
+
+  // Collect file paths to clean up before deleting DB rows
+  const reg = db.prepare('SELECT payment_screenshot_url FROM registrations WHERE user_id = ?').get(userId);
+  const teammate = db.prepare('SELECT id_card_url FROM teammates WHERE user_id = ?').get(userId);
+
+  // Delete the user — CASCADE handles registrations, teammates, team_members, teams
+  db.prepare('DELETE FROM users WHERE id = ?').run(userId);
+
+  // Clean up uploaded files from disk
+  removeUpload(user.profile_pic_url);
+  removeUpload(user.id_card_url);
+  if (reg) removeUpload(reg.payment_screenshot_url);
+  if (teammate) removeUpload(teammate.id_card_url);
+
+  console.log(`🗑 Admin ${req.user.email} deleted user #${userId} (${user.email})`);
+
+  res.json({
+    message: 'User account deleted successfully.',
+    deleted: {
+      id: userId,
+      email: user.email,
+      name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+    },
+  });
+});
+
+/**
+ * DELETE /api/admin/teams/:userId
+ * Remove a team (teammate record + associated registration).
+ * The registrar's user account is kept but reset to un-onboarded.
+ */
+router.delete('/teams/:userId', (req, res) => {
+  const userId = Number(req.params.userId);
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found.' });
+  }
+
+  const teammate = db.prepare('SELECT * FROM teammates WHERE user_id = ?').get(userId);
+  if (!teammate) {
+    return res.status(404).json({ error: 'No team found for this user.' });
+  }
+
+  // Collect file paths for cleanup
+  const reg = db.prepare('SELECT payment_screenshot_url FROM registrations WHERE user_id = ?').get(userId);
+
+  // All three writes land together — a half-removed team would leave the
+  // registrar holding a registration for a teammate who no longer exists.
+  const removeTeam = db.transaction(() => {
+    // Remove teammate record
+    db.prepare('DELETE FROM teammates WHERE user_id = ?').run(userId);
+
+    // Remove the associated registration (team registration is invalid without teammate)
+    db.prepare('DELETE FROM registrations WHERE user_id = ?').run(userId);
+
+    // Reset user so they can re-onboard (solo or new team)
+    db.prepare('UPDATE users SET mode = NULL, is_onboarded = 0 WHERE id = ?').run(userId);
+  });
+  removeTeam();
+
+  // Clean up uploaded files (only once the rows are committed)
+  removeUpload(teammate.id_card_url);
+  if (reg) removeUpload(reg.payment_screenshot_url);
+
+  console.log(`🗑 Admin ${req.user.email} removed team for user #${userId} (${user.email})`);
+
+  res.json({
+    message: 'Team removed successfully. The registrar account has been reset.',
+    deleted: {
+      userId,
+      registrarEmail: user.email,
+      teammateName: `${teammate.first_name || ''} ${teammate.last_name || ''}`.trim(),
+    },
   });
 });
 
