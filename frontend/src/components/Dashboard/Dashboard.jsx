@@ -5,7 +5,7 @@ import { api, assetUrl } from "../../lib/api";
 import GoogleSignInButton from "./GoogleSignInButton";
 
 /* Registration fee by participation mode + payee bank details for payment. */
-const FEE_BY_MODE = { solo: "₹150", team: "₹300" };
+const FEE_BY_MODE = { solo: "₹200", team: "₹400" };
 const feeFor = (mode) => FEE_BY_MODE[mode] || FEE_BY_MODE.solo;
 
 /* The one-time solo/team choice made at onboarding. */
