@@ -131,7 +131,7 @@ export const modalContent = {
         date: "12.09.2026",
         time: "03:00",
         detail:
-          "Winners announced across all five events, the ₹12,000/- prize pool distributed, then the closing ceremony.",
+          "Winners announced across all five events, the ₹11k+/- prize pool distributed, then the closing ceremony.",
       },
     ],
   },
