@@ -13,8 +13,8 @@ export const modalContent = {
         image: "/textures/Event_Posters/Scrolls_of_Realm.svg",
         description:
           "Providing opportunities for engineering students to showcase their innovative ideas and technical solutions. Participants can present their work in areas like cyber security, AI, Networking and computer science related fields.",
-        contactName: "[Contact Name]",
-        contactPhone: "[+91 XXXXX XXXXX]",
+        contactName: "Darshini K ",
+        contactPhone: "+91 78719 62148",
       },
       {
         id: "iron-throne",
@@ -24,8 +24,8 @@ export const modalContent = {
         image: "/textures/Event_Posters/Iron_Throne.svg",
         description:
           "Iron Throne is a Jeopardy-style Capture the Flag (CTF) challenge where participants solve a series of cybersecurity tasks to uncover hidden flags. It tests skills in areas such as cryptography, web security, digital forensics, OSINT, reverse engineering, and network analysis. The goal is to solve challenges, collect flags, earn points, and climb the leaderboard.",
-        contactName: "[Contact Name]",
-        contactPhone: "[+91 XXXXX XXXXX]",
+        contactName: "Durai R",
+        contactPhone: "+91 73053 64365",
       },
       {
         id: "siege-of-servers",
@@ -35,8 +35,8 @@ export const modalContent = {
         image: "/textures/Event_Posters/Siege_of_servers.svg",
         description:
           "An Attack-Defense CTF where teams compete to secure their own servers while finding and exploiting vulnerabilities in their opponents' systems. Participants must balance offensive and defensive strategies through vulnerability exploitation and system hardening. The team that defends effectively, attacks successfully, and scores the most points wins.",
-        contactName: "[Contact Name]",
-        contactPhone: "[+91 XXXXX XXXXX]",
+        contactName: "Srihari P",
+        contactPhone: "+91 99624 08595",
       },
       {
         id: "winter-war",
@@ -46,8 +46,8 @@ export const modalContent = {
         image: "/textures/Event_Posters/Winter_War.svg",
         description:
           "A Cybersecurity challenge where participants start with a vulnerable machine and work their way from initial access to full system control. The goal is to discover vulnerabilities, exploit them, escalate privileges, and capture the hidden flags.",
-        contactName: "[Contact Name]",
-        contactPhone: "[+91 XXXXX XXXXX]",
+        contactName: "Sai Shravan P",
+        contactPhone: "+91 78457 92926",
       },
       {
         id: "tessarions-trail",
@@ -57,8 +57,8 @@ export const modalContent = {
         image: "/textures/Event_Posters/Tessarians_Trail.svg",
         description:
           "The Participants investigate a crime using OSINT, connect clues and digital traces, uncover the criminal's identity, and submit their name as the final flag.",
-        contactName: "[Contact Name]",
-        contactPhone: "[+91 XXXXX XXXXX]",
+        contactName: "Manoj Prasad",
+        contactPhone: "+91 87789 11669",
       },
     ],
   },
