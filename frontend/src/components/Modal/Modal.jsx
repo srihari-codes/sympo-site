@@ -217,6 +217,23 @@ const Modal = () => {
                         {event.description}
                       </p>
 
+                      {(event.contactName || event.contactPhone) && (
+                        <div className="modal-event__contact">
+                          <span className="modal-event__contact-label">Contact:</span>
+                          {event.contactName && (
+                            <span className="modal-event__contact-name">{event.contactName}</span>
+                          )}
+                          {event.contactPhone && (
+                            <a
+                              href={`tel:${event.contactPhone.replace(/[\[\]\s]/g, "")}`}
+                              className="modal-event__contact-phone"
+                            >
+                              {event.contactPhone}
+                            </a>
+                          )}
+                        </div>
+                      )}
+
                       {isRegisterCta(event.registerText || linkText) ? (
                         <button
                           type="button"

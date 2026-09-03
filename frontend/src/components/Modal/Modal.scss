@@ -464,7 +464,43 @@
     font-size: clamp(14px, 1.05vw, 18px);
     line-height: 1.8;
     color: rgba(255, 255, 255, 0.9);
-    margin: 0 0 32px;
+    margin: 0 0 22px;
+  }
+
+  &__contact {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 0 0 28px;
+    padding: 12px 18px;
+    border-radius: 6px;
+    border: 1px solid rgba(201, 168, 76, 0.2);
+    background: rgba(201, 168, 76, 0.06);
+    font-size: clamp(13px, 0.95vw, 16px);
+  }
+
+  &__contact-label {
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: rgba(201, 168, 76, 0.7);
+  }
+
+  &__contact-name {
+    color: #f7eed7;
+    font-weight: 600;
+  }
+
+  &__contact-phone {
+    color: rgba(201, 168, 76, 0.9);
+    text-decoration: none;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #e05e26;
+    }
   }
 }
 
@@ -496,6 +532,9 @@
 }
 .modal-event.is-active .modal-event__text > *:nth-child(5) {
   transition-delay: 0.48s;
+}
+.modal-event.is-active .modal-event__text > *:nth-child(6) {
+  transition-delay: 0.56s;
 }
 
 /* ── Tablet / phone: poster pinned above the copy, flipping in place ──
