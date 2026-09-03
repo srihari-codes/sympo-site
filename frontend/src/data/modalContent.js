@@ -206,7 +206,7 @@ export const modalContent = {
       // ── Core Team ──
       {
         id: "team-president",
-        portrait: "/images/team/Gokul_Amaran_S.webp",
+        portrait: "/images/team/Gokul_Amaran.webp",
         name: "Gokul Amaran",
         designation: "President",
       },
