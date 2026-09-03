@@ -16,12 +16,16 @@ import { sendMail } from '../mailer.js';
 export async function sendRegistrationApproval({
   to,
   firstName,
+  eventId,
   eventName,
   eventTagline,
   transactionId,
   status = 'approved',
+  whatsappGroupUrl = process.env.WHATSAPP_GROUP_URL || 'https://chat.whatsapp.com/B8zEatW7uZf0L0JVe6j5f7',
+  scrollsFormUrl = process.env.SCROLLS_FORM_URL || 'https://docs.google.com/forms/d/e/1FAIpQLScsPe2A21E9C0XleWp2AFAVBPyaUc15bVp-vk9evToW7j3c_A/viewform?usp=publish-editor',
 }) {
   const isApproved = status === 'approved';
+  const isScrolls = eventId === 'scrolls-of-the-realm' || (eventName && eventName.toLowerCase().includes('scrolls'));
 
   const subject = isApproved
     ? `🎉 Registration Approved — ${eventName} | Zyverse 2K26`
@@ -42,6 +46,8 @@ export async function sendRegistrationApproval({
   const statusMessage = isApproved
     ? `Great news! Your payment and registration for <strong style="color:#c9a84c;">${eventName}</strong> have been <strong style="color:#4ade80;">APPROVED</strong>. Your spot in Zyverse 2K26 is officially confirmed!`
     : `Your payment / registration for <strong style="color:#c9a84c;">${eventName}</strong> could not be verified by our team. If you believe this is an error, please contact the event coordinators with your payment reference details.`;
+
+  const whatsappUrl = whatsappGroupUrl;
 
   const html = `
 <!DOCTYPE html>
@@ -154,9 +160,69 @@ export async function sendRegistrationApproval({
 
               ${
                 isApproved
-                  ? `<p style="margin:0 0 24px; font-size:14px; color:rgba(255,255,255,0.7); line-height:1.7;">
+                  ? `<!-- WhatsApp Group Invitation Card -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                     style="background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.3);
+                            border-radius:8px; margin-bottom:24px;">
+                <tr>
+                  <td style="padding:20px 24px; text-align:center;">
+                    <p style="margin:0 0 8px; font-size:15px; font-weight:700; color:#25D366; letter-spacing:0.5px;">
+                      💬 JOIN OFFICIAL WHATSAPP GROUP
+                    </p>
+                    <p style="margin:0 0 16px; font-size:14px; color:rgba(255,255,255,0.85); line-height:1.5;">
+                      Please join the official WhatsApp group for live event updates, schedule announcements, and coordinator communication.
+                    </p>
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                      <tr>
+                        <td style="border-radius:6px; background:#25D366;">
+                          <a href="${whatsappUrl}" target="_blank"
+                             style="display:inline-block; padding:12px 28px; font-size:14px; font-weight:700;
+                                    color:#0d0c0a; text-decoration:none; border-radius:6px; letter-spacing:0.5px;">
+                            Join WhatsApp Group
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              ${
+                isScrolls
+                  ? `<!-- Scrolls of the Realm Form Invitation Card -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                     style="background:rgba(201,168,76,0.10); border:1px solid rgba(201,168,76,0.35);
+                            border-radius:8px; margin-bottom:24px;">
+                <tr>
+                  <td style="padding:20px 24px; text-align:center;">
+                    <p style="margin:0 0 8px; font-size:15px; font-weight:700; color:#f7eed7; letter-spacing:0.5px;">
+                      📜 SUBMIT PAPER / PRESENTATION DETAILS
+                    </p>
+                    <p style="margin:0 0 16px; font-size:14px; color:rgba(255,255,255,0.85); line-height:1.5;">
+                      As a confirmed participant of <strong>Scrolls of the Realm</strong>, please complete the official submission form with your paper details and presentation slides.
+                    </p>
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                      <tr>
+                        <td style="border-radius:6px; background:linear-gradient(90deg,#c9a84c,#e05e26);">
+                          <a href="${scrollsFormUrl}" target="_blank"
+                             style="display:inline-block; padding:12px 28px; font-size:14px; font-weight:700;
+                                    color:#ffffff; text-decoration:none; border-radius:6px; letter-spacing:0.5px;">
+                            Fill Submission Form
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>`
+                  : ''
+              }
+
+              <p style="margin:0 0 24px; font-size:14px; color:rgba(255,255,255,0.7); line-height:1.7;">
                 📌 <strong style="color:#f7eed7;">Important Instructions for Event Day:</strong><br />
                 • Please carry your <strong style="color:#f7eed7;">College ID Card</strong>.<br />
+                • Join the official <a href="${whatsappUrl}" target="_blank" style="color:#25D366; text-decoration:underline;">WhatsApp Group</a> for real-time announcements.<br />
+                ${isScrolls ? `• Submit your paper details using the <a href="${scrollsFormUrl}" target="_blank" style="color:#c9a84c; text-decoration:underline;">Scrolls of the Realm Form</a>.<br />` : ''}
                 • Keep a digital or printed copy of this approval email handy at the registration desk.<br />
                 • Report to the main foyer by 08:30 AM.
               </p>`
@@ -191,13 +257,14 @@ export async function sendRegistrationApproval({
             </td>
           </tr>
 
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-  `.trim();
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+  </html>
+    `.trim();
 
   return sendMail(to, subject, html);
 }
+

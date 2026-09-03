@@ -160,6 +160,7 @@ router.patch('/registrations/:id', (req, res) => {
       sendRegistrationApproval({
         to: reg.email,
         firstName: reg.first_name,
+        eventId: reg.event_id,
         eventName: eName,
         eventTagline: eTagline,
         transactionId: reg.transaction_id,
@@ -172,6 +173,7 @@ router.patch('/registrations/:id', (req, res) => {
       sendRegistrationApproval({
         to: reg.tm_email,
         firstName: reg.tm_first || 'Teammate',
+        eventId: reg.event_id,
         eventName: eName,
         eventTagline: eTagline,
         transactionId: reg.transaction_id,
