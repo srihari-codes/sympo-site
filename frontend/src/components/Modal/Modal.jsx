@@ -139,6 +139,19 @@ const Modal = () => {
   const faceBack =
     eventList?.[activeIndex % 2 === 1 ? activeIndex : Math.max(0, activeIndex - 1)];
 
+  // Each event carries a colour theme; expose it as CSS vars so the copy accent
+  // and the frosted veil behind the text pick it up. The poster stage follows
+  // whichever event is currently active.
+  const themeVars = (theme) =>
+    theme
+      ? {
+          "--ev-accent": theme.accent,
+          "--ev-accent-rgb": theme.accentRgb,
+          "--ev-frost-rgb": theme.frostRgb,
+        }
+      : undefined;
+  const activeTheme = eventList?.[activeIndex]?.theme;
+
   return (
     <div
       className={`modal-overlay${isBare ? " modal-overlay--full" : ""}`}
@@ -178,7 +191,7 @@ const Modal = () => {
                   className={`modal-deck__poster${
                     activeIndex % 2 === 1 ? " is-right" : ""
                   }`}
-                  style={{ "--flip": `${activeIndex * 180}deg` }}
+                  style={{ "--flip": `${activeIndex * 180}deg`, ...themeVars(activeTheme) }}
                 >
                   <div className="modal-deck__face modal-deck__face--front">
                     <img src={faceFront?.image} alt="" />
@@ -202,6 +215,7 @@ const Modal = () => {
                       index === activeIndex ? " is-active" : ""
                     }`}
                     key={event.id}
+                    style={themeVars(event.theme)}
                   >
                     <div className="modal-event__text">
                       <span className="modal-event__index">

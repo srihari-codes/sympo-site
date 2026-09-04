@@ -338,10 +338,11 @@
   inset: 0;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(201, 168, 76, 0.3);
+  border: 1px solid rgba(var(--ev-accent-rgb, 201, 168, 76), 0.32);
   background: rgba(8, 7, 5, 0.5);
   box-shadow: 0 26px 70px rgba(0, 0, 0, 0.64),
-    0 0 44px rgba(201, 168, 76, 0.07);
+    0 0 52px rgba(var(--ev-frost-rgb, 201, 168, 76), 0.16);
+  transition: border-color 0.9s ease, box-shadow 0.9s ease;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 
@@ -403,6 +404,11 @@
 }
 
 .modal-event {
+  /* Per-event colour theme. Falls back to the deck's antique gold when an
+     event ships without a `theme` in modalContent. */
+  --ev-accent-rgb: 201, 168, 76;
+  --ev-frost-rgb: 201, 168, 76;
+  position: relative;
   height: 100%;
   scroll-snap-align: start;
   scroll-snap-stop: always;
@@ -427,7 +433,33 @@
   }
 
   &__text {
+    position: relative;
     max-width: 62ch;
+
+    /* The frost: a soft pool of the event's deep colour blurred into the
+       fogged scene behind the copy. Sits behind the text, fades in only
+       while the slide is active so it reads as the event "arriving". */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: -12% -9% -12% -14%;
+      z-index: -1;
+      border-radius: 28px;
+      background: radial-gradient(
+        130% 100% at 26% 34%,
+        rgba(var(--ev-frost-rgb), 0.28) 0%,
+        rgba(var(--ev-frost-rgb), 0.12) 42%,
+        transparent 78%
+      );
+      backdrop-filter: blur(7px) saturate(118%);
+      -webkit-backdrop-filter: blur(7px) saturate(118%);
+      -webkit-mask-image: radial-gradient(130% 100% at 26% 34%, #000 55%, transparent 85%);
+      mask-image: radial-gradient(130% 100% at 26% 34%, #000 55%, transparent 85%);
+      opacity: 0;
+      transform: scale(0.96);
+      transition: opacity 0.8s ease, transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
   }
 
   &__index {
@@ -435,12 +467,12 @@
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 3px;
-    color: rgba(201, 168, 76, 0.8);
+    color: rgba(var(--ev-accent-rgb), 0.85);
     margin-bottom: 14px;
   }
 
   &__count {
-    color: rgba(201, 168, 76, 0.4);
+    color: rgba(var(--ev-accent-rgb), 0.4);
   }
 
   &__name {
@@ -456,7 +488,7 @@
     font-size: clamp(12px, 0.9vw, 15px);
     letter-spacing: 1.6px;
     text-transform: uppercase;
-    color: rgba(201, 168, 76, 0.85);
+    color: rgba(var(--ev-accent-rgb), 0.9);
     margin: 0 0 22px;
   }
 
@@ -475,8 +507,8 @@
     margin: 0 0 28px;
     padding: 12px 18px;
     border-radius: 6px;
-    border: 1px solid rgba(201, 168, 76, 0.2);
-    background: rgba(201, 168, 76, 0.06);
+    border: 1px solid rgba(var(--ev-accent-rgb), 0.28);
+    background: rgba(var(--ev-frost-rgb), 0.14);
     font-size: clamp(13px, 0.95vw, 16px);
   }
 
@@ -485,7 +517,7 @@
     letter-spacing: 1.2px;
     text-transform: uppercase;
     font-size: 11px;
-    color: rgba(201, 168, 76, 0.7);
+    color: rgba(var(--ev-accent-rgb), 0.75);
   }
 
   &__contact-name {
@@ -494,14 +526,31 @@
   }
 
   &__contact-phone {
-    color: rgba(201, 168, 76, 0.9);
+    color: rgba(var(--ev-accent-rgb), 0.95);
     text-decoration: none;
     transition: color 0.2s ease;
 
     &:hover {
-      color: #e05e26;
+      color: #f7eed7;
     }
   }
+
+  /* CTA borrows the event's accent instead of the global gold. */
+  .modal-link {
+    border-color: rgba(var(--ev-accent-rgb), 0.75);
+    background: rgba(var(--ev-accent-rgb), 0.12);
+
+    &:hover {
+      background: rgba(var(--ev-accent-rgb), 0.22);
+      border-color: #f7eed7;
+      box-shadow: 0 6px 25px rgba(var(--ev-accent-rgb), 0.35);
+    }
+  }
+}
+
+.modal-event.is-active .modal-event__text::before {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* Copy drifts in from the side opposite the poster, staggered into reading

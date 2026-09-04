@@ -11,6 +11,9 @@ export const modalContent = {
         tagline: "Technical Paper & Research Presentation",
         category: "Paper Presentation",
         image: "/textures/Event_Posters/Scrolls_of_Realm.svg",
+        // Forest Green x Antique Gold x Dark Brown. accent tints the copy,
+        // frost tints the blurred veil behind the text on the active slide.
+        theme: { accent: "#c6a34e", accentRgb: "198, 163, 78", frostRgb: "47, 93, 58" },
         description:
           "Providing opportunities for engineering students to showcase their innovative ideas and technical solutions. Participants can present their work in areas like cyber security, AI, Networking and computer science related fields.",
         contactName: "Darshini K ",
@@ -22,6 +25,8 @@ export const modalContent = {
         tagline: "Jeopardy-Style Capture The Flag (CTF)",
         category: "Jeopardy CTF",
         image: "/textures/Event_Posters/Iron_Throne.svg",
+        // Crimson Red x Burgundy x Black.
+        theme: { accent: "#d94b4b", accentRgb: "217, 75, 75", frostRgb: "78, 22, 32" },
         description:
           "Iron Throne is a Jeopardy-style Capture the Flag (CTF) challenge where participants solve a series of cybersecurity tasks to uncover hidden flags. It tests skills in areas such as cryptography, web security, digital forensics, OSINT, reverse engineering, and network analysis. The goal is to solve challenges, collect flags, earn points, and climb the leaderboard.",
         contactName: "Durai R",
@@ -33,8 +38,10 @@ export const modalContent = {
         tagline: "Attack-Defense CTF & Server Exploits",
         category: "Attack-Defense CTF",
         image: "/textures/Event_Posters/Siege_of_servers.svg",
+        // Charcoal Black x Ash Grey x Muted Red.
+        theme: { accent: "#c2c6cb", accentRgb: "194, 198, 203", frostRgb: "38, 40, 43" },
         description:
-          "An Attack-Defense CTF where teams compete to secure their own servers while finding and exploiting vulnerabilities in their opponents' systems. Participants must balance offensive and defensive strategies through vulnerability exploitation and system hardening. The team that defends effectively, attacks successfully, and scores the most points wins.",
+          "An Attack-Defense CTF where teams compete to secure their own servers while finding and exploiting vulnerabilities in their opponents' systems. Participants must balance offensive and defensive strategies through vulnerability exploitation and system hardening.",
         contactName: "Srihari P",
         contactPhone: "+91 99624 08595",
       },
@@ -44,6 +51,8 @@ export const modalContent = {
         tagline: "Boot2Root & Privilege Escalation CTF",
         category: "Boot2Root CTF",
         image: "/textures/Event_Posters/Winter_War.svg",
+        // Warm Brown x Amber x Deep Maroon.
+        theme: { accent: "#e0a337", accentRgb: "224, 163, 55", frostRgb: "69, 22, 28" },
         description:
           "A Cybersecurity challenge where participants start with a vulnerable machine and work their way from initial access to full system control. The goal is to discover vulnerabilities, exploit them, escalate privileges, and capture the hidden flags.",
         contactName: "Sai Shravan P",
@@ -55,6 +64,8 @@ export const modalContent = {
         tagline: "OSINT & Digital Forensics Investigation",
         category: "OSINT & Digital Forensics",
         image: "/textures/Event_Posters/Tessarians_Trail.svg",
+        // Teal x Turquoise x Sand Gold.
+        theme: { accent: "#3fbaae", accentRgb: "63, 186, 174", frostRgb: "15, 74, 70" },
         description:
           "The Participants investigate a crime using OSINT, connect clues and digital traces, uncover the criminal's identity, and submit their name as the final flag.",
         contactName: "Manoj Prasad",
