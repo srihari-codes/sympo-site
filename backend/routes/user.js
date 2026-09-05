@@ -108,15 +108,12 @@ router.post(
         }
       }
 
-      // Own uploads (fall back to whatever is already on file).
+      // Own uploads — optional. Fall back to whatever is already on file.
       let idCardUrl = req.user.id_card_url;
       let profilePicUrl = req.user.profile_pic_url;
 
       if (ownIdCard) idCardUrl = `/uploads/${ownIdCard.filename}`;
-      else if (!idCardUrl) return reject(400, 'ID card picture upload is required.');
-
       if (ownProfilePic) profilePicUrl = `/uploads/${ownProfilePic.filename}`;
-      else if (!profilePicUrl) return reject(400, 'Profile picture upload is required.');
 
       // Teammate details — only in team mode.
       let teammate = null;
@@ -133,7 +130,6 @@ router.post(
 
         let teammateIdCardUrl = existingTeammate?.id_card_url || null;
         if (teammateIdCard) teammateIdCardUrl = `/uploads/${teammateIdCard.filename}`;
-        if (!teammateIdCardUrl) return reject(400, "Upload a photo of your teammate's college ID card.");
 
         teammate = {
           first_name: tFirst,

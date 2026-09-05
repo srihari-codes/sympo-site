@@ -49,7 +49,9 @@ export function initDb() {
       phone_number TEXT NOT NULL,
       email TEXT NOT NULL,
       college TEXT,
-      id_card_url TEXT NOT NULL,
+      -- Optional: the college ID card / profile picture upload was dropped
+      -- from the registration form.
+      id_card_url TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -106,10 +108,43 @@ export function initDb() {
     console.log('↳ migration: added users.college');
   }
 
-  const teammateColumns = db.prepare('PRAGMA table_info(teammates)').all().map((c) => c.name);
+  const teammateInfo = db.prepare('PRAGMA table_info(teammates)').all();
+  const teammateColumns = teammateInfo.map((c) => c.name);
   if (teammateColumns.length && !teammateColumns.includes('college')) {
     db.exec('ALTER TABLE teammates ADD COLUMN college TEXT');
     console.log('↳ migration: added teammates.college');
+  }
+
+  // The college ID card upload used to be required (id_card_url TEXT NOT NULL).
+  // It's now optional, but SQLite can't drop a NOT NULL constraint in place —
+  // rebuild the table around a nullable column, copying every existing row
+  // across so no data is lost.
+  const idCardCol = teammateInfo.find((c) => c.name === 'id_card_url');
+  if (idCardCol && idCardCol.notnull) {
+    db.pragma('foreign_keys = OFF');
+    db.transaction(() => {
+      db.exec(`
+        CREATE TABLE teammates_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER UNIQUE NOT NULL,
+          first_name TEXT NOT NULL,
+          last_name TEXT NOT NULL,
+          phone_number TEXT NOT NULL,
+          email TEXT NOT NULL,
+          college TEXT,
+          id_card_url TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+        INSERT INTO teammates_new (id, user_id, first_name, last_name, phone_number, email, college, id_card_url, created_at, updated_at)
+          SELECT id, user_id, first_name, last_name, phone_number, email, college, id_card_url, created_at, updated_at FROM teammates;
+        DROP TABLE teammates;
+        ALTER TABLE teammates_new RENAME TO teammates;
+      `);
+    })();
+    db.pragma('foreign_keys = ON');
+    console.log('↳ migration: relaxed teammates.id_card_url to nullable (no rows lost)');
   }
 
   // A bank reference pays for exactly one registration — this is what stops the

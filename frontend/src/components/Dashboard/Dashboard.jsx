@@ -225,9 +225,6 @@ const OnboardingStep = () => {
     email: "",
     college: "",
   });
-  const [idCard, setIdCard] = useState(null);
-  const [profilePic, setProfilePic] = useState(null);
-  const [mateIdCard, setMateIdCard] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -248,12 +245,6 @@ const OnboardingStep = () => {
     ) {
       return setError("All of your details, including your college, are required.");
     }
-    if (!idCard && !user?.idCardUrl) {
-      return setError("Please upload a photo of your college ID card.");
-    }
-    if (!profilePic && !user?.profilePicUrl) {
-      return setError("Please upload a profile picture.");
-    }
     if (mode === "team") {
       if (
         !mate.first_name ||
@@ -264,9 +255,6 @@ const OnboardingStep = () => {
       ) {
         return setError("Your teammate's details, including their college, are all required.");
       }
-      if (!mateIdCard) {
-        return setError("Please upload a photo of your teammate's college ID card.");
-      }
     }
 
     const fd = new FormData();
@@ -276,8 +264,6 @@ const OnboardingStep = () => {
     fd.append("phone_number", form.phone_number);
     fd.append("email", form.email);
     fd.append("college", form.college.trim());
-    if (idCard) fd.append("id_card", idCard);
-    if (profilePic) fd.append("profile_pic", profilePic);
 
     if (mode === "team") {
       fd.append("teammate_first_name", mate.first_name);
@@ -285,7 +271,6 @@ const OnboardingStep = () => {
       fd.append("teammate_phone_number", mate.phone_number);
       fd.append("teammate_email", mate.email);
       fd.append("teammate_college", mate.college.trim());
-      if (mateIdCard) fd.append("teammate_id_card", mateIdCard);
     }
 
     setBusy(true);
@@ -366,23 +351,6 @@ const OnboardingStep = () => {
         />
       </Field>
 
-      <div className="dash-grid-2">
-        <FileField
-          label="College ID card"
-          name="id_card"
-          file={idCard}
-          onChange={setIdCard}
-          hint={user?.idCardUrl && !idCard ? "Already uploaded — choose a file to replace it." : undefined}
-        />
-        <FileField
-          label="Profile picture"
-          name="profile_pic"
-          file={profilePic}
-          onChange={setProfilePic}
-          hint={user?.profilePicUrl && !profilePic ? "Already uploaded — choose a file to replace it." : undefined}
-        />
-      </div>
-
       {mode === "team" && (
         <>
           <h4 className="dash-subhead">Your teammate&apos;s details</h4>
@@ -426,13 +394,6 @@ const OnboardingStep = () => {
               required
             />
           </Field>
-
-          <FileField
-            label="Teammate's college ID card"
-            name="teammate_id_card"
-            file={mateIdCard}
-            onChange={setMateIdCard}
-          />
         </>
       )}
 
